@@ -1,5 +1,23 @@
-#include<complex>
+#include<cmath>
+#include<iostream>
+#include <fstream>
+#include<iomanip>
+#include"physical_constants.h"
 #include"TFSF.h"
+
+using namespace std;
+
+std::string fname = "zz_TFSF.dat";
+ofstream fout(fname);
+
+void TFSF::addSource(int nt)
+{
+	Ein(Isource) = source(nt*dt);
+
+	fout << scientific;
+	fout.precision(4);
+	fout << setw(4) << nt << setw(14) << Ein(Isource) << setw(14) << Ein(0) << endl;
+}
 
 double TFSF::source(double time)
 {
@@ -30,38 +48,7 @@ double TFSF::source(double time)
 	//}
 	//return fsource;
 
-	////////IEC 0-30MHz
-	//const double pi = acos(-1.0);
-	//const complex<double>ci(0.0, 1.0);
-	//complex<double>ftemp;
-	//double Ttotal = 0.5e-6;
-	//double Fresolution = 1.0 / Ttotal;
-	//if (time >=0.0) {   //&&time<= Ttotal
-	//	fsource = E0k*(1.0 / alpha - 1.0 / beta) / Ttotal;
-	//	for (int k = 1; k <= 15; k++) {
-	//		ftemp = E0k*(1.0 / (alpha + k * 2.0 * pi*Fresolution*ci)
-	//			- 1.0 / (beta + k* 2.0 * pi*Fresolution*ci));
-	//		fsource = fsource + 2.0 * real(ftemp*exp(k * 2.0 * pi*Fresolution*time*ci)) / Ttotal;
-	//	}
-	//}
-	//else {
-	//	fsource = 0.0;
-	//}
-	//return fsource;
-
-	////////高斯
-	//double fsource;
-	//if (time >= 0) {
-	//	fsource = sin(5.34E9 *time)*exp(-4.0*pi*
-	//		(time - 3.53E-9) / 3.13E-9*(time - 3.53E-9) / 3.13E-9);
-	//}
-	//else {
-	//	fsource = 0.0;
-	//}
-	//return fsource;
-
-	/////单一频率
-	double omega = 2.0 * pi*300.0E6;
+	double omega = 2.0 * pi*300.E6;
 	double fsource;
 	if (time >= 0) {
 		fsource = sin(omega *time);
@@ -70,4 +57,17 @@ double TFSF::source(double time)
 		fsource = 0.0;
 	}
 	return fsource;
+
+
+	//double f = 300.E6;
+	//double tau = 2.0 / 100.0E6;
+	//double t0 = 0.6*tau;
+	//double fsource;
+	//if (time >= 0) {
+	//	fsource = sin(2.0 * pi *f* time)  *  exp(-4.0 *pi * (time - t0)* (time - t0) / tau/tau);
+	//}
+	//else {
+	//	fsource = 0.0;
+	//}
+	//return fsource;
 }

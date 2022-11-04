@@ -1,7 +1,11 @@
-#include <string>
+#include <iostream>
 #include <fstream>
-#include <iomanip>
-#include "FDTD.h"
+#include<iomanip>
+#include<cmath>
+#include"physical_constants.h"
+#include"FDTD.h"
+
+using namespace std;
 
 void FDTD::compute()
 {
@@ -41,7 +45,7 @@ void FDTD::compute()
 	ofstream fout_Zface_Ey(f_Zface_Ey);
 	ofstream fout_Zface_Ez(f_Zface_Ez);
 	//ofstream fout_Zface_Et(f_Zface_Et);
-	
+
 	fout_point_Ex << scientific;
 	fout_point_Ex.precision(4);
 	fout_point_Ey << scientific;
@@ -69,47 +73,55 @@ void FDTD::compute()
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//BEGIN TIME STEP
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	std::cout << "210527begin time-stepping" << std::endl;
-	//添加时间循环
+	std::cout << "210527FDTDbegin time-stepping" << std::endl;
 	for (int n = 0; n <= tmax; n++) {
 		std::cout << "time n=" << n << std::endl;
-		//t=(n-1/2)dt
-		Einc.update1D_Hinc();
-		// t=n*dt
-		Einc.update1D_Einc(n);
-
 		//*********************************************************************
+		//******************         Begin Main            ********************
+		//*********************************************************************
+		//***t=(n-1/2)dt
+		Einc.update1D_Hinc();
+		//***t=n*dt
+		Einc.update1D_Einc();
+		Einc.addSource(n);
+
 		//******************         E t=n*dt              ********************
 		update3D_E();   //t=n*dt
-		update3D_CPML_psiE();
-		Einc.add_TFSF_Box_E_CPML(ce_x_1, ce_x_2, ce_y_1, ce_y_2, ce_z_1, ce_z_2,
-			psi_Exy_1, psi_Exy_2, psi_Exz_1, psi_Exz_2, psi_Eyx_1, psi_Eyx_2,
-			psi_Eyz_1, psi_Eyz_2, psi_Ezx_1, psi_Ezx_2, psi_Ezy_1, psi_Ezy_2);
-		update3D_CPML_E();
-		Einc.add_TFSF_Box_E(CB, ob, den_ex, den_ey, den_ez, Ex, Ey, Ez);
-		//Einc.add_TSFS_Z2_E(dx, dy, dz, CB, ob, den_ez, Ex, Ey);
-		
-		//*********************************************************************
+		pml.update3D_CPML_psiE(Hx, Hy, Hz);
+		Einc.add_TFSF_Box_E_CPML(pml.ce_x_1, pml.ce_x_2, pml.ce_y_1, pml.ce_y_2, pml.ce_z_1, pml.ce_z_2,
+			pml.psi_Exy_1, pml.psi_Exy_2, pml.psi_Exz_1, pml.psi_Exz_2, pml.psi_Eyx_1, pml.psi_Eyx_2,
+			pml.psi_Eyz_1, pml.psi_Eyz_2, pml.psi_Ezx_1, pml.psi_Ezx_2, pml.psi_Ezy_1, pml.psi_Ezy_2);
+		pml.update3D_CPML_E(CB, ob, Ex, Ey, Ez);
+		Einc.add_TFSF_Box_E(Ex, Ey, Ez);
+		//Einc.add_TFSF_Z2_E(Ex, Ey);
+
 		//******************       H t=(n+0.5)*dt           ********************
 		update3D_H();
-		update3D_CPML_psiH();
-		Einc.add_TFSF_Box_H_CPML(ch_x_1, ch_x_2, ch_y_1, ch_y_2, ch_z_1, ch_z_2,
-			psi_Hxy_1, psi_Hxy_2, psi_Hxz_1, psi_Hxz_2, psi_Hyx_1, psi_Hyx_2,
-			psi_Hyz_1, psi_Hyz_2, psi_Hzx_1, psi_Hzx_2, psi_Hzy_1, psi_Hzy_2);
-		update3D_CPML_H();	
-		Einc.add_TFSF_Box_H(den_hx, den_hy, den_hz, Hx, Hy, Hz);
-		//Einc.add_TSFS_Z2_H(dx, dy, dz, den_hz, Hx, Hy);
+		pml.update3D_CPML_psiH(Ex, Ey, Ez);
+		Einc.add_TFSF_Box_H_CPML(pml.ch_x_1, pml.ch_x_2, pml.ch_y_1, pml.ch_y_2, pml.ch_z_1, pml.ch_z_2,
+			pml.psi_Hxy_1, pml.psi_Hxy_2, pml.psi_Hxz_1, pml.psi_Hxz_2, pml.psi_Hyx_1, pml.psi_Hyx_2,
+			pml.psi_Hyz_1, pml.psi_Hyz_2, pml.psi_Hzx_1, pml.psi_Hzx_2, pml.psi_Hzy_1, pml.psi_Hzy_2);
+		pml.update3D_CPML_H(DB, Hx, Hy, Hz);
+		Einc.add_TFSF_Box_H(Hx, Hy, Hz);
+		//Einc.add_TFSF_Z2_H(Hx, Hy);
+
+		//**********************************************************************
+		//******************         End Main               ********************
+		//*********************************************************************
+		
+		//double T = 2.0E-9;
+		//Ez(0, 0, 0) = Ez(0, 0, 0) + dt / eps0 / dx / dx / dx*
+		//	1.0E-10* (-2.0*  ((n*dt - 3.0*T) / T) / T)
+		//	*exp(-pow((n*dt - 3.0*T) / T, 2)  );
 
 
-		//******************************************************************************
-		//  需要修改
-		if (n >= (tmax - 40)) {
-			for (int i = Imin; i <= Imax-1; i++) {
-				for (int j = Jmin; j <= Jmax-1; j++) {
-					for (int k = Kmin; k <= Kmax-1; k++) {
+		if (n >= (tmax - 80)) {
+			for (int i = Imin; i <= Imax - 1; i++) {
+				for (int j = Jmin; j <= Jmax - 1; j++) {
+					for (int k = Kmin; k <= Kmax - 1; k++) {
 						//Ex幅值
 						temp = abs(Ex(i, j, k));
-						if (temp > Emx(i, j,k)) {
+						if (temp > Emx(i, j, k)) {
 							Emx(i, j, k) = temp;
 						}
 						temp = abs(Ey(i, j, k));
@@ -127,20 +139,20 @@ void FDTD::compute()
 		}//n
 
 		fout_point_Ex << setw(11) << n*dt*1.0E6
-			<< setw(14) << Ex(0, 0, 0) << setw(14) << Ex(5, 5, 5) << setw(14) << Ex(0, 0, 10) << endl;
+			<< setw(14) << Ex(0, 0, -5) << setw(14) << Ex(0, 0, 0) << setw(14) << Ex(0, 0, 5) << setw(14) << Ex(0, 0, 10) << endl;
 		fout_point_Ey << setw(11) << n*dt*1.0E6
 			<< setw(14) << Ey(0, 0, 0) << setw(14) << Ey(5, 5, 5) << setw(14) << Ey(0, 0, 10) << endl;
 		fout_point_Ez << setw(11) << n*dt*1.0E6
-			<< setw(14) << Ez(0, 0, 0) << setw(14) << Ez(5, 5, 5) << setw(14) << Ez(0, 0, 10) << endl;
+			<< setw(14) << Ez(0, 10, 0) << setw(14) << Ez(5, 5, 5) << setw(14) << Ez(0, 0, 10) << endl;
+
 	}  // loop time
-	
-	
-	////y面  j=0  Ex
-	for (int k = KsMin; k <= KsMax -1; k++) {
+
+	   ////y面  j=0  Ex
+	for (int k = KsMin; k <= KsMax - 1; k++) {
 		for (int i = IsMin; i <= IsMax - 1; i++) {
 			tempx = (Emx(i, 0, k) + Emx(i, 1, k) + Emx(i, 0, k + 1) + Emx(i, 1, k + 1)) / 4.0;
 			tempy = (Emy(i, 0, k) + Emy(i + 1, 0, k) + Emy(i, 0, k + 1) + Emy(i + 1, 0, k + 1)) / 4.0;
-			tempz = (Emz(i, 0, k) + Emz(i+1 , 0, k) + Emz(i, 1, k) + Emz(i + 1, 1, k)) / 4.0;
+			tempz = (Emz(i, 0, k) + Emz(i + 1, 0, k) + Emz(i, 1, k) + Emz(i + 1, 1, k)) / 4.0;
 			//temp = sqrt(tempx*tempx + tempy*tempy + tempz*tempz);
 
 			fout_Yface_Ex << setw(14) << tempx;
@@ -156,7 +168,7 @@ void FDTD::compute()
 
 	////z面 Ex
 	int knum = 10;   //z方向观测面
-	for (int j = JsMin; j <= JsMax -1; j++) {
+	for (int j = JsMin; j <= JsMax - 1; j++) {
 		for (int i = IsMin; i <= IsMax - 1; i++) {
 			tempx = (Emx(i, j, knum) + Emx(i, j + 1, knum) + Emx(i, j, knum + 1) + Emx(i, j + 1, knum + 1)) / 4.0;
 			tempy = (Emy(i, j, knum) + Emy(i + 1, j, knum) + Emy(i, j, knum + 1) + Emy(i + 1, j, knum + 1)) / 4.0;
@@ -192,80 +204,17 @@ void FDTD::compute()
 	fout_Zface_Ey.close();
 	fout_Zface_Ez.close();
 	//fout_Zface_Et.close();
+
 }
 
 
 void FDTD::IsMedia()
 {
-	////////start 粗糙地面建模
-	//std::string fname = "read_data/L=500_h=0.5m_l=15m_N=1000_Lm=200m-Hm=57.74.dat";
-	//ifstream fin_sur(fname);
-
-	//if (!fin_sur.is_open()) {
-	//	cout << fname << ":  open fail" << endl;
-	//}
-
-	//Matrix<double>ff(IsMin, IsMax, JsMin, JsMax);
-	//for (int j = JsMin + 1; j <= JsMax; j++) {
-	//	for (int i = IsMin + 1; i <= IsMax; i++) {
-	//		fin_sur >> ff(i, j);
-	//	}
-	//}
-
-	//for (int i = IsMin + 1; i <= IsMax; i++) {
-	//	ff(i, JsMin) = ff(i,JsMax);
-	//}
-	//for (int j = JsMin + 1; j <= JsMax; j++) {
-	//	ff(IsMin, j) = ff(IsMax, j);
-	//}
-	//ff(IsMin, JsMin) = ff(IsMax,JsMax);
-
-
-	//double zz, zave;
-	//for (int i = Imin; i <= Imax - 1; i++) {
-	//	for (int j = Jmin; j <= Jmax - 1; j++) {
-	//		for (int k = Kmin; k <= Kmax - 1; k++) {
-	//			zz = (k + 0.5)*dz;
-	//			if (i >= IsMin && i < IsMax && j >= JsMin && j < JsMax) {
-	//				zave = (ff(i, j) + ff(i + 1, j) + ff(i, j + 1) + ff(i + 1, j + 1)) / 4.0;
-	//				if (zz < zave)
-	//					ob(i, j, k) = 1;
-	//				else
-	//					ob(i, j, k) = 0;
-	//			}
-	//			else {
-	//				if (zz < 0.0)
-	//					ob(i, j, k) = 1;
-	//				else
-	//					ob(i, j, k) = 0;
-	//			}
-	//		} //loop k
-	//	}//loop j
-	//}//loop i
-
-	//string str_sur = "zz_sur.dat";
-	//ofstream fout(str_sur);
-	//fout.setf(ios_base::fixed, ios_base::floatfield);
-	//fout.precision(4);
-	////*******************************************************
-	//for (int j = JsMin; j <= JsMax; j++) {
-	//	for (int i = IsMin; i <= IsMax; i++) {
-	//		fout.width(7);
-	//		fout << ff(i, j) << "   ";
-	//	}
-	//	fout << endl;
-	//}
-	////*******************************************************
-	//fout.close();
-	////////end 粗糙地面建模
-
-
-
 	for (int i = Imin; i <= Imax - 1; i++) {
 		for (int j = Jmin; j <= Jmax - 1; j++) {
 			for (int k = Kmin; k <= Kmax - 1; k++) {
 				if (k + 0.5 <= 0.0) {
-					ob(i, j, k)= 1;
+					ob(i, j, k) = 1;
 				}
 				else {
 					ob(i, j, k) = 0;
@@ -273,4 +222,5 @@ void FDTD::IsMedia()
 			}
 		}
 	}
+
 }

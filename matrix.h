@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __MATRIX_H__
+#define __MATRIX_H__
 
 //PURPOSE:
 //	 动态分配1-4维中任意维度的数组，并且每一维度的上下限可以为负数。
@@ -13,16 +14,15 @@
 //      Northwest Institute of Nuclear Technology, Xi'an; 710024, China
 
 #include<iostream>
-using namespace std;
 
 template<class T>
 class Matrix {
-private:
+public:
 	int amin, amax; // 第1维度的上限和下限,可为负数（amax>=amin）。
 	int	bmin, bmax; // 第2维度的上限和下限,可为负数（bmax>=bmin）。
 	int	cmin, cmax; // 第3维度的上限和下限,可为负数（cmax>=cmin）。
 	int dmin, dmax; // 第4维度的上限和下限,可为负数（dmax>=dmin）。
-
+private:
 	T* data;   //动态分配的数组
 public:
 	//默认构造函数。若调用默认构造函数，则需要进一步调用相应维度的Allocate()分配数组空间和赋值。
@@ -479,3 +479,5 @@ const T& Matrix<T>::operator()(int a, int b, int c, int d) const
 		return data[0];
 	}
 }
+
+#endif //__MATRIX_H__
