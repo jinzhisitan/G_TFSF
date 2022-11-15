@@ -92,7 +92,7 @@ void FDTD::compute()
 			pml.psi_Exy_1, pml.psi_Exy_2, pml.psi_Exz_1, pml.psi_Exz_2, pml.psi_Eyx_1, pml.psi_Eyx_2,
 			pml.psi_Eyz_1, pml.psi_Eyz_2, pml.psi_Ezx_1, pml.psi_Ezx_2, pml.psi_Ezy_1, pml.psi_Ezy_2);
 		pml.update3D_CPML_E(CB, ob, Ex, Ey, Ez);
-		Einc.add_TFSF_Box_E(Ex, Ey, Ez);
+		Einc.add_TFSF_Box_E(CB, ob, den_ex, den_ey, den_ez, Ex, Ey, Ez);
 		//Einc.add_TFSF_Z2_E(Ex, Ey);
 
 		//******************       H t=(n+0.5)*dt           ********************
@@ -102,7 +102,7 @@ void FDTD::compute()
 			pml.psi_Hxy_1, pml.psi_Hxy_2, pml.psi_Hxz_1, pml.psi_Hxz_2, pml.psi_Hyx_1, pml.psi_Hyx_2,
 			pml.psi_Hyz_1, pml.psi_Hyz_2, pml.psi_Hzx_1, pml.psi_Hzx_2, pml.psi_Hzy_1, pml.psi_Hzy_2);
 		pml.update3D_CPML_H(DB, Hx, Hy, Hz);
-		Einc.add_TFSF_Box_H(Hx, Hy, Hz);
+		Einc.add_TFSF_Box_H(den_hx, den_hy, den_hz, Hx, Hy, Hz);
 		//Einc.add_TFSF_Z2_H(Hx, Hy);
 
 		//**********************************************************************
@@ -148,7 +148,7 @@ void FDTD::compute()
 	}  // loop time
 
 	   ////y√Ê  j=0  Ex
-	for (int k = KsMin; k <= KsMax - 1; k++) {
+	for (int k = KsMin; k <= KsMax - 1-5; k++) {
 		for (int i = IsMin; i <= IsMax - 1; i++) {
 			tempx = (Emx(i, 0, k) + Emx(i, 1, k) + Emx(i, 0, k + 1) + Emx(i, 1, k + 1)) / 4.0;
 			tempy = (Emy(i, 0, k) + Emy(i + 1, 0, k) + Emy(i, 0, k + 1) + Emy(i + 1, 0, k + 1)) / 4.0;
@@ -222,5 +222,22 @@ void FDTD::IsMedia()
 			}
 		}
 	}
+
+
+	//for (int i = Imin; i <= Imax - 1; i++) {
+	//	for (int j = Jmin; j <= Jmax - 1; j++) {
+	//		for (int k = Kmin; k <= Kmax - 1; k++) {
+	//			ob(i, j, k) = 0;
+	//		}
+	//	}
+	//}
+
+	//for (int i = IsMin - 6; i <= IsMax + 6 - 1; i++) {
+	//	for (int j = JsMin - 6; j <= JsMax + 6 - 1; j++) {
+	//		for (int k = KsMin - 6; k <= -1; k++) {
+	//			ob(i, j, k) = 1;
+	//		}
+	//	}
+	//}
 
 }

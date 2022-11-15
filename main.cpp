@@ -35,15 +35,15 @@ int main()
 	//Resulting Courant - Stable Time Step
 	//cell size in each direction
 	double dx, dy, dz, dt;
-	dx = 0.05, dy = dx, dz = dx;
+	dx = 0.025, dy = dx, dz = dx;
 	//time step increment
 	//dt = 0.99 / (c0*sqrt(1.0 / pow(dx, 2) + 1.0 / pow(dy, 2) + 1.0 / pow(dz, 2)));    //Eq(3-2-8)	
 	dt = dx / 2.0 / c0;
 	
 	int IsMin, IsMax, JsMin, JsMax, KsMin, KsMax;  //散射场区域边界
-	IsMin = -15, IsMax = 15;
+	IsMin = -40, IsMax = 40;
 	JsMin = IsMin, JsMax = IsMax;
-	KsMin =-15, KsMax = 15;
+	KsMin =-10, KsMax = 45;
 	int tmax=300; //total number of time steps
 
 	//Specify the CPML Thickness in Each Direction(Value of Zero
@@ -53,19 +53,19 @@ int main()
 	nxPML_1 = 16, nxPML_2 = nxPML_1, nyPML_1 = nxPML_1, nyPML_2 = nxPML_1, nzPML_1 = nxPML_1, nzPML_2 = nxPML_1;
 	
 	//Specify Material Relative Permittivity and Conductivity
-	vector<double> epsr { 1.0, 1.0 };
-	vector<double> sig { 0.0, 0.0 };
+	vector<double> epsr { 1.0, 10.0 };
+	vector<double> sig { 0.0, 0.001 };
 
 	//************************************************************************************
 	//平面波加载
 	//************************************************************************************
-	int TFSFGrid = -5;
+	int TFSFGrid = -12;
 	int ItMin = IsMin +TFSFGrid;   //connective boundary
 	int ItMax = IsMax -TFSFGrid;
 	int JtMin = JsMin +TFSFGrid;
 	int JtMax = JsMax -TFSFGrid;
-	int KtMin = KsMin +TFSFGrid;
-	int KtMax = KsMax -TFSFGrid;
+	int KtMin = KsMin -14;
+	int KtMax = KsMax -5;
 	
 	double alpha = 0.0 / 180.0*pi;
 	double thi = 180.0 / 180.0*pi;

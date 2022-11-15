@@ -135,15 +135,18 @@ void TFSF::initializeTSFS()
 
 void TFSF::initCoefficientsTSFS()
 {
-	std::string fname = "../read_data/Z_Gauss300MHz_dx=2.5cm_m=4_a=0_k=1_N=16.dat";
+	std::string fname = "../read_data/Analytic_m=4_a=0_k=1_N=16.dat";
 	std::ifstream fin(fname);
 
 	if (!fin.is_open()) {
 		std::cout << fname << ":  open fail" << std::endl;
 	}
 
+
 	int temp;
 	double attnEtemp, attnHtemp;
+	AttnE.clear();
+	AttnH.clear();
 	while (fin >> temp && fin >> attnEtemp&& fin >> attnHtemp)
 	{
 		AttnE.push_back(attnEtemp);
@@ -187,17 +190,19 @@ void TFSF::update1D_Hinc()
 }
 
 
-void TFSF::add_TFSF_Box_E(Matrix<double> &Ex, Matrix<double> &Ey, Matrix<double> &Ez)
+void TFSF::add_TFSF_Box_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ex, const Matrix<double> &den_ey,
+	const Matrix<double> &den_ez, Matrix<double> &Ex, Matrix<double> &Ey, Matrix<double> &Ez)
 {
-	add_TFSF_X1_E(Ey, Ez);
-	add_TFSF_X2_E(Ey, Ez);
-	add_TFSF_Y1_E(Ex, Ez);
-	add_TFSF_Y2_E(Ex, Ez);
-	add_TFSF_Z1_E(Ex, Ey);
-	add_TFSF_Z2_E(Ex, Ey);
+	add_TFSF_X1_E(CB, ob, den_ex, Ey, Ez);
+	add_TFSF_X2_E(CB, ob, den_ex, Ey, Ez);
+	add_TFSF_Y1_E(CB, ob, den_ey, Ex, Ez);
+	add_TFSF_Y2_E(CB, ob, den_ey, Ex, Ez);
+	add_TFSF_Z1_E(CB, ob, den_ez, Ex, Ey);
+	add_TFSF_Z2_E(CB, ob, den_ez, Ex, Ey);
 }
 
-void TFSF::add_TFSF_X1_E(Matrix<double> &Ey, Matrix<double> &Ez)
+void TFSF::add_TFSF_X1_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ex, 
+	Matrix<double> &Ey, Matrix<double> &Ez)
 {
 	double APML = 1.0;
 
@@ -211,7 +216,7 @@ void TFSF::add_TFSF_X1_E(Matrix<double> &Ey, Matrix<double> &Ez)
 	//[1] Eq(6-7-18)
 	double Hytemp = cos(phi)*cos(alpha) - cos(thi)*sin(phi)*sin(alpha);
 	double Hztemp = sin(thi)*sin(alpha);
-
+	double factor2;
 	//************************************************************************
 	//***************      x1        ***************
 	//    x1  Ey
@@ -232,7 +237,9 @@ void TFSF::add_TFSF_X1_E(Matrix<double> &Ey, Matrix<double> &Ez)
 			HzCB_x1 *= Hztemp;
 
 			APML= attenuationFactor(ItMin - 0.5, j + 0.5, k);
-			Ey(ItMin, j, k) += dt / eps0 / dx*HzCB_x1*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(ItMin, j, k),ob(ItMin - 1, j, k),ob(ItMin, j, k - 1),ob(ItMin - 1, j, k - 1));
+			Ey(ItMin, j, k) += factor2*den_ex(ItMin)*HzCB_x1*APML;   //表6-3 修改mu0
 		}
 	}
 	//   x1  Ez
@@ -253,12 +260,15 @@ void TFSF::add_TFSF_X1_E(Matrix<double> &Ey, Matrix<double> &Ez)
 			HyCB_x1 *= Hytemp;
 
 			APML = attenuationFactor(ItMin - 0.5, j, k + 0.5);
-			Ez(ItMin, j, k) -= dt / eps0 / dx*HyCB_x1*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(ItMin, j, k),ob(ItMin - 1, j, k),ob(ItMin, j - 1, k),ob(ItMin - 1, j - 1, k));
+			Ez(ItMin, j, k) -= factor2*den_ex(ItMin)*HyCB_x1*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_X2_E(Matrix<double> &Ey, Matrix<double> &Ez)
+void TFSF::add_TFSF_X2_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ex, 
+	Matrix<double> &Ey, Matrix<double> &Ez)
 {
 	double APML = 1.0;
 
@@ -272,7 +282,7 @@ void TFSF::add_TFSF_X2_E(Matrix<double> &Ey, Matrix<double> &Ez)
 	//[1] Eq(6-7-18)
 	double Hytemp = cos(phi)*cos(alpha) - cos(thi)*sin(phi)*sin(alpha);
 	double Hztemp = sin(thi)*sin(alpha);
-
+	double factor2;
 	//************************************************************************
 	//***************      x2        ***************
 	//    x2  Ey
@@ -293,7 +303,9 @@ void TFSF::add_TFSF_X2_E(Matrix<double> &Ey, Matrix<double> &Ez)
 			HzCB_x2 *= Hztemp;
 
 			APML = attenuationFactor(ItMax + 0.5, j + 0.5, k);
-			Ey(ItMax, j, k) -= dt / eps0 / dx*HzCB_x2*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(ItMax, j, k), ob(ItMax - 1, j, k), ob(ItMax, j, k - 1), ob(ItMax - 1, j, k - 1));
+			Ey(ItMax, j, k) -= factor2 *den_ex(ItMax)*HzCB_x2*APML;   //表6-3 修改mu0
 		}
 	}
 	//   x2  Ez
@@ -314,13 +326,16 @@ void TFSF::add_TFSF_X2_E(Matrix<double> &Ey, Matrix<double> &Ez)
 			HyCB_x2 *= Hytemp;
 
 			APML = attenuationFactor(ItMax + 0.5, j, k + 0.5);
-			Ez(ItMax, j, k) += dt / eps0 / dx*HyCB_x2*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(ItMax, j, k),ob(ItMax - 1, j, k),ob(ItMax, j - 1, k),ob(ItMax - 1, j - 1, k));
+			Ez(ItMax, j, k) += factor2*den_ex(ItMax) *HyCB_x2*APML;   //表6-3 修改mu0
 		}
 	}
 
 }
 
-void TFSF::add_TFSF_Y1_E(Matrix<double> &Ex, Matrix<double> &Ez)
+void TFSF::add_TFSF_Y1_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ey,
+	Matrix<double> &Ex, Matrix<double> &Ez)
 {
 	double APML = 1.0;
 
@@ -334,7 +349,7 @@ void TFSF::add_TFSF_Y1_E(Matrix<double> &Ex, Matrix<double> &Ez)
 	//[1] Eq(6-7-18)
 	double Hxtemp = -sin(phi)*cos(alpha) - cos(thi)*cos(phi)*sin(alpha);
 	double Hztemp = sin(thi)*sin(alpha);
-
+	double factor2;
 	//************************************************************************
 	//***************      y1        ***************
 	//    y1  Ez
@@ -355,7 +370,9 @@ void TFSF::add_TFSF_Y1_E(Matrix<double> &Ex, Matrix<double> &Ez)
 			HxCB_y1 *= Hxtemp;
 
 			APML = attenuationFactor(i, JtMin - 0.5, k + 0.5);
-			Ez(i, JtMin, k) += dt / eps0 / dy*HxCB_y1*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(i, JtMin, k),ob(i - 1, JtMin, k),ob(i, JtMin - 1, k),ob(i - 1, JtMin - 1, k));
+			Ez(i, JtMin, k) += factor2 *den_ey(JtMin)*HxCB_y1*APML;   //表6-3 修改mu0
 		}
 	}
 	//    y1  Ex
@@ -376,12 +393,15 @@ void TFSF::add_TFSF_Y1_E(Matrix<double> &Ex, Matrix<double> &Ez)
 			HzCB_y1 *= Hztemp;
 
 			APML = attenuationFactor(i + 0.5, JtMin - 0.5, k);
-			Ex(i, JtMin, k) -= dt / eps0 / dy*HzCB_y1*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(i, JtMin, k),ob(i, JtMin, k - 1),ob(i, JtMin - 1, k),ob(i, JtMin - 1, k - 1));
+			Ex(i, JtMin, k) -= factor2 *den_ey(JtMin)*HzCB_y1*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_Y2_E(Matrix<double> &Ex, Matrix<double> &Ez)
+void TFSF::add_TFSF_Y2_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ey, 
+	Matrix<double> &Ex, Matrix<double> &Ez)
 {
 	double APML = 1.0;
 
@@ -395,6 +415,7 @@ void TFSF::add_TFSF_Y2_E(Matrix<double> &Ex, Matrix<double> &Ez)
 	//[1] Eq(6-7-18)
 	double Hxtemp = -sin(phi)*cos(alpha) - cos(thi)*cos(phi)*sin(alpha);
 	double Hztemp = sin(thi)*sin(alpha);
+	double factor2;
 	//************************************************************************
 	//***************      y2        ***************
 	//    y2  Ez
@@ -415,7 +436,9 @@ void TFSF::add_TFSF_Y2_E(Matrix<double> &Ex, Matrix<double> &Ez)
 			HxCB_y2 *= Hxtemp;
 
 			APML = attenuationFactor(i, JtMax + 0.5, k + 0.5);
-			Ez(i, JtMax, k) -= dt / eps0 / dy*HxCB_y2*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(i, JtMax, k),ob(i - 1, JtMax, k),ob(i, JtMax - 1, k),ob(i - 1, JtMax - 1, k));
+			Ez(i, JtMax, k) -= factor2*den_ey(JtMax)*HxCB_y2*APML;   //表6-3 修改mu0
 		}
 	}
 	//    y2  Ex
@@ -436,12 +459,15 @@ void TFSF::add_TFSF_Y2_E(Matrix<double> &Ex, Matrix<double> &Ez)
 			HzCB_y2 *= Hztemp;
 
 			APML = attenuationFactor(i + 0.5, JtMax + 0.5, k);
-			Ex(i, JtMax, k) += dt / eps0 / dy*HzCB_y2*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(i, JtMax, k),ob(i, JtMax, k - 1),ob(i, JtMax - 1, k),ob(i, JtMax - 1, k - 1));
+			Ex(i, JtMax, k) += factor2* den_ey(JtMax) *HzCB_y2*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_Z1_E(Matrix<double> &Ex, Matrix<double> &Ey)
+void TFSF::add_TFSF_Z1_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ez,
+	Matrix<double> &Ex, Matrix<double> &Ey)
 {
 	double APML = 1.0;
 
@@ -455,6 +481,7 @@ void TFSF::add_TFSF_Z1_E(Matrix<double> &Ex, Matrix<double> &Ey)
 	//[1] Eq(6-7-18)
 	double Hxtemp = -sin(phi)*cos(alpha) - cos(thi)*cos(phi)*sin(alpha);
 	double Hytemp = cos(phi)*cos(alpha) - cos(thi)*sin(phi)*sin(alpha);
+	double factor2;
 	//************************************************************************
 	//***************      z1        ***************
 	//    z1  Ex
@@ -475,7 +502,9 @@ void TFSF::add_TFSF_Z1_E(Matrix<double> &Ex, Matrix<double> &Ey)
 			HyCB_z1 *= Hytemp;
 
 			APML = attenuationFactor(i + 0.5, j, KtMin - 0.5);
-			Ex(i, j, KtMin) += dt / eps0 / dz*HyCB_z1*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(i, j, KtMin), ob(i, j, KtMin - 1), ob(i, j - 1, KtMin), ob(i, j - 1, KtMin - 1));
+			Ex(i, j, KtMin) += factor2*den_ez(KtMin)*HyCB_z1*APML;   //表6-3 修改mu0
 		}
 	}
 	//   z2  Ey
@@ -496,12 +525,15 @@ void TFSF::add_TFSF_Z1_E(Matrix<double> &Ex, Matrix<double> &Ey)
 			HxCB_z1 *= Hxtemp;
 
 			APML = attenuationFactor(i, j + 0.5, KtMin - 0.5);
-			Ey(i, j, KtMin) -= dt / eps0 / dz*HxCB_z1*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(i, j, KtMin),ob(i - 1, j, KtMin),ob(i, j, KtMin - 1),ob(i - 1, j, KtMin - 1));
+			Ey(i, j, KtMin) -= factor2 *den_ez(KtMin)*HxCB_z1*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_Z2_E(Matrix<double> &Ex, Matrix<double> &Ey)
+void TFSF::add_TFSF_Z2_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ez, 
+	Matrix<double> &Ex, Matrix<double> &Ey)
 {
 	double APML = 1.0;
 
@@ -515,7 +547,7 @@ void TFSF::add_TFSF_Z2_E(Matrix<double> &Ex, Matrix<double> &Ey)
 	//[1] Eq(6-7-18)
 	double Hxtemp = -sin(phi)*cos(alpha) - cos(thi)*cos(phi)*sin(alpha);
 	double Hytemp = cos(phi)*cos(alpha) - cos(thi)*sin(phi)*sin(alpha);
-
+	double factor2;
 	//************************************************************************
 	//***************      z2        ***************
 	//    z2  Ex
@@ -536,7 +568,9 @@ void TFSF::add_TFSF_Z2_E(Matrix<double> &Ex, Matrix<double> &Ey)
 			HyCB_z2 *= Hytemp;
 
 			APML = attenuationFactor(i + 0.5, j, KtMax + 0.5);
-			Ex(i, j, KtMax) -= dt / eps0 / dz*HyCB_z2*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(i, j, KtMax),ob(i, j, KtMax - 1),ob(i, j - 1, KtMax),ob(i, j - 1, KtMax - 1));
+			Ex(i, j, KtMax) -= factor2*den_ez(KtMax)*HyCB_z2*APML;   //表6-3 修改mu0
 		}
 	}
 	//   z2  Ey
@@ -557,23 +591,26 @@ void TFSF::add_TFSF_Z2_E(Matrix<double> &Ex, Matrix<double> &Ey)
 			HxCB_z2 *= Hxtemp;
 
 			APML = attenuationFactor(i, j + 0.5, KtMax + 0.5);
-			Ey(i, j, KtMax) += dt / eps0 / dz*HxCB_z2*APML;   //表6-3 修改mu0
+
+			factor2 = CB(ob(i, j, KtMax),ob(i - 1, j, KtMax),ob(i, j, KtMax - 1),ob(i - 1, j, KtMax - 1));
+			Ey(i, j, KtMax) += factor2*den_ez(KtMax)*HxCB_z2*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
 
-void TFSF::add_TFSF_Box_H(Matrix<double> &Hx, Matrix<double> &Hy, Matrix<double> &Hz)
+void TFSF::add_TFSF_Box_H(const Matrix<double> &den_hx, const Matrix<double> &den_hy, const Matrix<double> &den_hz, 
+	Matrix<double> &Hx, Matrix<double> &Hy, Matrix<double> &Hz)
 {
-	add_TFSF_X1_H(Hy, Hz);
-	add_TFSF_X2_H(Hy, Hz);
-	add_TFSF_Y1_H(Hx, Hz);
-	add_TFSF_Y2_H(Hx, Hz);
-	add_TFSF_Z1_H(Hx, Hy);
-	add_TFSF_Z2_H(Hx, Hy);
+	add_TFSF_X1_H(den_hx, Hy, Hz);
+	add_TFSF_X2_H(den_hx, Hy, Hz);
+	add_TFSF_Y1_H(den_hy, Hx, Hz);
+	add_TFSF_Y2_H(den_hy, Hx, Hz);
+	add_TFSF_Z1_H(den_hz, Hx, Hy);
+	add_TFSF_Z2_H(den_hz, Hx, Hy);
 }
 
-void TFSF::add_TFSF_X1_H(Matrix<double> &Hy, Matrix<double> &Hz)
+void TFSF::add_TFSF_X1_H(const Matrix<double> &den_hx, Matrix<double> &Hy, Matrix<double> &Hz)
 {
 	double APML = 1.0;
 
@@ -608,7 +645,7 @@ void TFSF::add_TFSF_X1_H(Matrix<double> &Hy, Matrix<double> &Hz)
 			EzCB_x1 *= Eztemp;
 
 			APML = attenuationFactor(ItMin, j, k + 0.5);
-			Hy(ItMin - 1, j, k) -=  dt / mu0 / dx*EzCB_x1*APML;   //表6-3 修改mu0
+			Hy(ItMin - 1, j, k) -=  dt / mu0 *den_hx(ItMin - 1)*EzCB_x1*APML;   //表6-3 修改mu0
 		}
 	}
 	//x1 Hz
@@ -629,12 +666,12 @@ void TFSF::add_TFSF_X1_H(Matrix<double> &Hy, Matrix<double> &Hz)
 			EyCB_x1 *= Eytemp;
 
 			APML = attenuationFactor(ItMin, j + 0.5 , k);
-			Hz(ItMin - 1, j, k) += dt / mu0 / dx*EyCB_x1*APML;   //表6-3 修改mu0
+			Hz(ItMin - 1, j, k) += dt / mu0 *den_hx(ItMin - 1)*EyCB_x1*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_X2_H(Matrix<double> &Hy, Matrix<double> &Hz)
+void TFSF::add_TFSF_X2_H(const Matrix<double> &den_hx, Matrix<double> &Hy, Matrix<double> &Hz)
 {
 	double APML = 1.0;
 
@@ -669,7 +706,7 @@ void TFSF::add_TFSF_X2_H(Matrix<double> &Hy, Matrix<double> &Hz)
 			EzCB_x2 *= Eztemp;
 
 			APML = attenuationFactor(ItMax, j, k + 0.5);
-			Hy(ItMax, j, k) +=  dt / mu0 / dx*EzCB_x2*APML;   //表6-3 修改mu0
+			Hy(ItMax, j, k) += dt / mu0* den_hx(ItMax)*EzCB_x2*APML;   //表6-3 修改mu0
 		}
 	}
 
@@ -691,12 +728,12 @@ void TFSF::add_TFSF_X2_H(Matrix<double> &Hy, Matrix<double> &Hz)
 			EyCB_x2 *= Eytemp;
 
 			APML = attenuationFactor(ItMax, j + 0.5, k);
-			Hz(ItMax, j, k) -=  dt / mu0 / dx*EyCB_x2*APML;   //表6-3 修改mu0
+			Hz(ItMax, j, k) -= dt / mu0 * den_hx(ItMax)*EyCB_x2;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_Y1_H(Matrix<double> &Hx, Matrix<double> &Hz)
+void TFSF::add_TFSF_Y1_H(const Matrix<double> &den_hy, Matrix<double> &Hx, Matrix<double> &Hz)
 {
 	double APML = 1.0;
 
@@ -730,7 +767,7 @@ void TFSF::add_TFSF_Y1_H(Matrix<double> &Hx, Matrix<double> &Hz)
 			ExCB_y1 *= Extemp;
 
 			APML = attenuationFactor(i + 0.5, JtMin, k);
-			Hz(i, JtMin - 1, k) -=  dt / mu0 / dy*ExCB_y1*APML;   //表6-3 修改mu0
+			Hz(i, JtMin - 1, k) -= dt / mu0*den_hy(JtMin - 1)*ExCB_y1*APML;   //表6-3 修改mu0
 		}
 	}
 	// y1  Hx
@@ -751,12 +788,12 @@ void TFSF::add_TFSF_Y1_H(Matrix<double> &Hx, Matrix<double> &Hz)
 			EzCB_y1 *= Eztemp;
 
 			APML = attenuationFactor(i, JtMin, k + 0.5);
-			Hx(i, JtMin - 1, k) +=  dt / mu0 / dy*EzCB_y1*APML;   //表6-3 修改mu0
+			Hx(i, JtMin - 1, k) += dt / mu0*den_hy(JtMin - 1)*EzCB_y1*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_Y2_H(Matrix<double> &Hx, Matrix<double> &Hz)
+void TFSF::add_TFSF_Y2_H(const Matrix<double> &den_hy, Matrix<double> &Hx, Matrix<double> &Hz)
 {
 	double APML = 1.0;
 
@@ -790,7 +827,7 @@ void TFSF::add_TFSF_Y2_H(Matrix<double> &Hx, Matrix<double> &Hz)
 			ExCB_y2 *= Extemp;
 
 			APML = attenuationFactor(i + 0.5, JtMax, k);
-			Hz(i, JtMax, k) += dt / mu0 / dy*ExCB_y2*APML;   //表6-3 修改mu0
+			Hz(i, JtMax, k) += dt / mu0*den_hy(JtMax)*ExCB_y2*APML;   //表6-3 修改mu0
 		}
 	}
 	// y2  Hx
@@ -811,12 +848,12 @@ void TFSF::add_TFSF_Y2_H(Matrix<double> &Hx, Matrix<double> &Hz)
 			EzCB_y2 *= Eztemp;
 
 			APML = attenuationFactor(i, JtMax, k + 0.5);
-			Hx(i, JtMax, k) -=  dt / mu0 / dy*EzCB_y2*APML;   //表6-3 修改mu0
+			Hx(i, JtMax, k) -= dt / mu0*den_hy(JtMax)*EzCB_y2*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_Z1_H(Matrix<double> &Hx, Matrix<double> &Hy)
+void TFSF::add_TFSF_Z1_H(const Matrix<double> &den_hz, Matrix<double> &Hx, Matrix<double> &Hy)
 {
 	double APML = 1.0;
 
@@ -850,7 +887,7 @@ void TFSF::add_TFSF_Z1_H(Matrix<double> &Hx, Matrix<double> &Hy)
 			EyCB_z1 *= Eytemp;
 
 			APML = attenuationFactor(i, j + 0.5, KtMin);
-			Hx(i, j, KtMin - 1) -= dt / mu0 / dz*EyCB_z1*APML;   //表6-3 修改mu0
+			Hx(i, j, KtMin - 1) -= dt / mu0*den_hz(KtMin - 1)*EyCB_z1*APML;   //表6-3 修改mu0
 		}
 	}
 
@@ -872,12 +909,12 @@ void TFSF::add_TFSF_Z1_H(Matrix<double> &Hx, Matrix<double> &Hy)
 			ExCB_z1 *= Extemp;
 
 			APML = attenuationFactor(i + 0.5, j, KtMin);
-			Hy(i, j, KtMin - 1) += dt / mu0 / dz*ExCB_z1*APML;   //表6-3 修改mu0
+			Hy(i, j, KtMin - 1) += dt / mu0*den_hz(KtMin - 1)*ExCB_z1*APML;   //表6-3 修改mu0
 		}
 	}
 }
 
-void TFSF::add_TFSF_Z2_H(Matrix<double> &Hx, Matrix<double> &Hy)
+void TFSF::add_TFSF_Z2_H(const Matrix<double> &den_hz, Matrix<double> &Hx, Matrix<double> &Hy)
 {
 	double APML = 1.0;
 
@@ -912,7 +949,7 @@ void TFSF::add_TFSF_Z2_H(Matrix<double> &Hx, Matrix<double> &Hy)
 			EyCB_z2 *= Eytemp;
 
 			APML = attenuationFactor(i, j + 0.5, KtMax);
-			Hx(i, j, KtMax) += dt / mu0 / dz*EyCB_z2*APML;   //表6-3 修改mu0
+			Hx(i, j, KtMax) += dt / mu0* den_hz(KtMax)*EyCB_z2*APML;   //表6-3 修改mu0
 		}
 	}
 
@@ -934,7 +971,7 @@ void TFSF::add_TFSF_Z2_H(Matrix<double> &Hx, Matrix<double> &Hy)
 			ExCB_z2 *= Extemp;
 
 			APML = attenuationFactor(i + 0.5, j, KtMax);
-			Hy(i, j, KtMax) -= dt / mu0 / dz*ExCB_z2*APML;   //表6-3 修改mu0
+			Hy(i, j, KtMax) -= dt / mu0* den_hz(KtMax)*ExCB_z2*APML;   //表6-3 修改mu0
 		}
 	}
 }

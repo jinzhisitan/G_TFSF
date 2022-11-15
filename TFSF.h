@@ -49,23 +49,25 @@ public:
 	void update1D_Hinc();
 	
 
-	void add_TFSF_Box_E(Matrix<double> &Ex, Matrix<double> &Ey, Matrix<double> &Ez);
-	void add_TFSF_Box_H(Matrix<double> &Hx, Matrix<double> &Hy, Matrix<double> &Hz);
+	void add_TFSF_Box_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ex, const Matrix<double> &den_ey,
+		const Matrix<double> &den_ez, Matrix<double> &Ex, Matrix<double> &Ey, Matrix<double> &Ez);
+	void add_TFSF_Box_H(const Matrix<double> &den_hx, const Matrix<double> &den_hy, const Matrix<double> &den_hz,
+		Matrix<double> &Hx, Matrix<double> &Hy, Matrix<double> &Hz);
 	
-	void add_TFSF_X1_E(Matrix<double> &Ey, Matrix<double> &Ez);
-	void add_TFSF_X2_E(Matrix<double> &Ey, Matrix<double> &Ez);
-	void add_TFSF_Y1_E(Matrix<double> &Ex, Matrix<double> &Ez);
-	void add_TFSF_Y2_E(Matrix<double> &Ex, Matrix<double> &Ez);
-	void add_TFSF_Z1_E(Matrix<double> &Ex, Matrix<double> &Ey);
-	void add_TFSF_Z2_E(Matrix<double> &Ex, Matrix<double> &Ey);
+	void add_TFSF_X1_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ex, Matrix<double> &Ey, Matrix<double> &Ez);
+	void add_TFSF_X2_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ex, Matrix<double> &Ey, Matrix<double> &Ez);
+	void add_TFSF_Y1_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ey, Matrix<double> &Ex, Matrix<double> &Ez);
+	void add_TFSF_Y2_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ey, Matrix<double> &Ex, Matrix<double> &Ez);
+	void add_TFSF_Z1_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ez, Matrix<double> &Ex, Matrix<double> &Ey);
+	void add_TFSF_Z2_E(const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ez, Matrix<double> &Ex, Matrix<double> &Ey);
 
 
-	void add_TFSF_X1_H(Matrix<double> &Hy, Matrix<double> &Hz);
-	void add_TFSF_X2_H(Matrix<double> &Hy, Matrix<double> &Hz);
-	void add_TFSF_Y1_H(Matrix<double> &Hx, Matrix<double> &Hz);
-	void add_TFSF_Y2_H(Matrix<double> &Hx, Matrix<double> &Hz);
-	void add_TFSF_Z1_H(Matrix<double> &Hx, Matrix<double> &Hy);
-	void add_TFSF_Z2_H(Matrix<double> &Hx, Matrix<double> &Hy);
+	void add_TFSF_X1_H(const Matrix<double> &den_hx, Matrix<double> &Hy, Matrix<double> &Hz);
+	void add_TFSF_X2_H(const Matrix<double> &den_hx, Matrix<double> &Hy, Matrix<double> &Hz);
+	void add_TFSF_Y1_H(const Matrix<double> &den_hy, Matrix<double> &Hx, Matrix<double> &Hz);
+	void add_TFSF_Y2_H(const Matrix<double> &den_hy, Matrix<double> &Hx, Matrix<double> &Hz);
+	void add_TFSF_Z1_H(const Matrix<double> &den_hz, Matrix<double> &Hx, Matrix<double> &Hy);
+	void add_TFSF_Z2_H(const Matrix<double> &den_hz, Matrix<double> &Hx, Matrix<double> &Hy);
 
 /////////////////////////////////////////////////////////////////
 //////////////      CPML区域入射波加入
