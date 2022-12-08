@@ -135,7 +135,7 @@ void TFSF::initializeTSFS()
 
 void TFSF::initCoefficientsTSFS()
 {
-	std::string fname = "../read_data/Analytic_m=4_a=0_k=1_N=16.dat";
+	std::string fname = "../read_data/f=300MHz_dx=2.5cm_m=3_a=0_k=1_N=20inv18.dat";
 	std::ifstream fin(fname);
 
 	if (!fin.is_open()) {
@@ -728,7 +728,7 @@ void TFSF::add_TFSF_X2_H(const Matrix<double> &den_hx, Matrix<double> &Hy, Matri
 			EyCB_x2 *= Eytemp;
 
 			APML = attenuationFactor(ItMax, j + 0.5, k);
-			Hz(ItMax, j, k) -= dt / mu0 * den_hx(ItMax)*EyCB_x2;   //表6-3 修改mu0
+			Hz(ItMax, j, k) -= dt / mu0 * den_hx(ItMax)*EyCB_x2*APML;   //表6-3 修改mu0
 		}
 	}
 }

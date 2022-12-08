@@ -33,7 +33,7 @@ void TFSF::add_TFSF_Box_H_CPML(const Matrix<double> &ch_x_1, const Matrix<double
 void TFSF::add_TFSF_X1_E_CPML(const Matrix<double>&ce_x_1, Matrix<double> &psi_Eyx_1, Matrix<double> &psi_Ezx_1)
 {
 	////总场边界条件深入CPML
-	if (ItMin > IsMin) {
+	if (ItMin > IsMin && ItMin<IsMax) {
 		return;
 	}
 
@@ -99,7 +99,7 @@ void TFSF::add_TFSF_X1_E_CPML(const Matrix<double>&ce_x_1, Matrix<double> &psi_E
 void TFSF::add_TFSF_X2_E_CPML(const Matrix<double>&ce_x_2, Matrix<double> &psi_Eyx_2, Matrix<double> &psi_Ezx_2)
 {
 	////总场边界条件深入CPML
-	if (ItMax < IsMax) {
+	if (ItMax < IsMax&&ItMax>IsMin) {
 		return;
 	}
 
@@ -165,7 +165,7 @@ void TFSF::add_TFSF_X2_E_CPML(const Matrix<double>&ce_x_2, Matrix<double> &psi_E
 void TFSF::add_TFSF_Y1_E_CPML(const Matrix<double>&ce_y_1, Matrix<double> &psi_Exy_1, Matrix<double> &psi_Ezy_1)
 {
 	////总场边界条件深入CPML
-	if (JtMin > JsMin) {
+	if (JtMin > JsMin&&JtMin<JsMax) {
 		return;
 	}
 
@@ -230,7 +230,7 @@ void TFSF::add_TFSF_Y1_E_CPML(const Matrix<double>&ce_y_1, Matrix<double> &psi_E
 void TFSF::add_TFSF_Y2_E_CPML(const Matrix<double>&ce_y_2, Matrix<double> &psi_Exy_2, Matrix<double> &psi_Ezy_2)
 {
 	////总场边界条件深入CPML
-	if (JtMax < JsMax) {
+	if (JtMax < JsMax&&JtMax>JsMin) {
 		return;
 	}
 
@@ -295,7 +295,7 @@ void TFSF::add_TFSF_Y2_E_CPML(const Matrix<double>&ce_y_2, Matrix<double> &psi_E
 void TFSF::add_TFSF_Z1_E_CPML(const Matrix<double>&ce_z_1, Matrix<double> &psi_Exz_1, Matrix<double> &psi_Eyz_1)
 {
 	////总场边界条件深入CPML
-	if (KtMin > KsMin) {
+	if (KtMin > KsMin&&KtMin<KsMax) {
 		return;
 	}
 
@@ -360,7 +360,7 @@ void TFSF::add_TFSF_Z1_E_CPML(const Matrix<double>&ce_z_1, Matrix<double> &psi_E
 void TFSF::add_TFSF_Z2_E_CPML(const Matrix<double>&ce_z_2, Matrix<double> &psi_Exz_2, Matrix<double> &psi_Eyz_2)
 {
 	////总场边界条件深入CPML
-	if (KtMax < KsMax) {
+	if (KtMax < KsMax && KtMax>KsMin) {
 		return;
 	}
 
@@ -427,7 +427,7 @@ void TFSF::add_TFSF_Z2_E_CPML(const Matrix<double>&ce_z_2, Matrix<double> &psi_E
 void TFSF::add_TFSF_X1_H_CPML(const Matrix<double> &ch_x_1, Matrix<double> &psi_Hyx_1, Matrix<double> &psi_Hzx_1)
 {
 	////总场边界条件深入CPML
-	if (ItMin >= IsMin) {
+	if (ItMin > IsMin && ItMin <IsMax) {
 		return;
 	}
 
@@ -493,7 +493,7 @@ void TFSF::add_TFSF_X1_H_CPML(const Matrix<double> &ch_x_1, Matrix<double> &psi_
 void TFSF::add_TFSF_X2_H_CPML(const Matrix<double> &ch_x_2, Matrix<double> &psi_Hyx_2, Matrix<double> &psi_Hzx_2)
 {
 	////总场边界条件深入CPML
-	if (ItMax <= IsMax) {
+	if (ItMax < IsMax && ItMax > IsMin) {
 		return;
 	}
 
@@ -560,7 +560,7 @@ void TFSF::add_TFSF_X2_H_CPML(const Matrix<double> &ch_x_2, Matrix<double> &psi_
 void TFSF::add_TFSF_Y1_H_CPML(const Matrix<double> &ch_y_1, Matrix<double> &psi_Hxy_1, Matrix<double> &psi_Hzy_1)
 {
 	////总场边界条件深入CPML
-	if (JtMin >= JsMin) {
+	if (JtMin > JsMin&&JtMin<JsMax) {
 		return;
 	}
 
@@ -625,7 +625,7 @@ void TFSF::add_TFSF_Y1_H_CPML(const Matrix<double> &ch_y_1, Matrix<double> &psi_
 void TFSF::add_TFSF_Y2_H_CPML(const Matrix<double> &ch_y_2, Matrix<double> &psi_Hxy_2, Matrix<double> &psi_Hzy_2)
 {
 	////总场边界条件深入CPML
-	if (JtMax <= JsMax) {
+	if (JtMax < JsMax && JtMax>JsMin) {
 		return;
 	}
 
@@ -690,7 +690,7 @@ void TFSF::add_TFSF_Y2_H_CPML(const Matrix<double> &ch_y_2, Matrix<double> &psi_
 void TFSF::add_TFSF_Z1_H_CPML(const Matrix<double> &ch_z_1, Matrix<double> &psi_Hxz_1, Matrix<double> &psi_Hyz_1)
 {
 	////总场边界条件深入CPML
-	if (KtMin >= KsMin) {
+	if (KtMin > KsMin && KtMin<KsMax) {
 		return;
 	}
 
@@ -756,7 +756,7 @@ void TFSF::add_TFSF_Z1_H_CPML(const Matrix<double> &ch_z_1, Matrix<double> &psi_
 void TFSF::add_TFSF_Z2_H_CPML(const Matrix<double> &ch_z_2, Matrix<double> &psi_Hxz_2, Matrix<double> &psi_Hyz_2)
 {
 	////总场边界条件深入CPML
-	if (KtMax <= KsMax) {
+	if (KtMax < KsMax && KtMax>KsMin) {
 		return;
 	}
 

@@ -115,7 +115,7 @@ void FDTD::compute()
 		//	*exp(-pow((n*dt - 3.0*T) / T, 2)  );
 
 
-		if (n >= (tmax - 80)) {
+		if (n >= (tmax - 40)) {
 			for (int i = Imin; i <= Imax - 1; i++) {
 				for (int j = Jmin; j <= Jmax - 1; j++) {
 					for (int k = Kmin; k <= Kmax - 1; k++) {
@@ -137,53 +137,66 @@ void FDTD::compute()
 				}//j
 			}//i
 		}//n
-
+		//5 or 21
+		int Ittemp = 5;
 		fout_point_Ex << setw(11) << n*dt*1.0E6
-			<< setw(14) << Ex(0, 0, -5) << setw(14) << Ex(0, 0, 0) << setw(14) << Ex(0, 0, 5) << setw(14) << Ex(0, 0, 10) << endl;
+			<< setw(14) << Ex(-Ittemp, 0, 32) << setw(14) << Ex(0, 0, 32) << setw(14) << Ex(Ittemp, 0, 32)
+			<< setw(14) << Ex(-Ittemp, 0, 31) << setw(14) << Ex(0, 0, 31) << setw(14) << Ex(Ittemp, 0, 31)
+			<< setw(14) << Ex(-Ittemp, 0, 30) << setw(14) << Ex(0, 0, 30) << setw(14) << Ex(Ittemp, 0, 30)
+			<< setw(14) << Ex(-Ittemp, 0, 29) << setw(14) << Ex(0, 0, 29) << setw(14) << Ex(Ittemp, 0, 29)
+			<< setw(14) << Ex(-Ittemp, 0, 28) << setw(14) << Ex(0, 0, 28) << setw(14) << Ex(Ittemp, 0, 28)
+			<< setw(14) << Ex(-Ittemp, 0, 27) << setw(14) << Ex(0, 0, 27) << setw(14) << Ex(Ittemp, 0, 27)
+			 << endl;
 		fout_point_Ey << setw(11) << n*dt*1.0E6
-			<< setw(14) << Ey(0, 0, 0) << setw(14) << Ey(5, 5, 5) << setw(14) << Ey(0, 0, 10) << endl;
+			<< setw(14) << Ex(-Ittemp, 0, 25) << setw(14) << Ex(0, 0, 25) << setw(14) << Ex(Ittemp, 0, 25)
+			<< setw(14) << Ex(-Ittemp, 0, 24) << setw(14) << Ex(0, 0, 24) << setw(14) << Ex(Ittemp, 0, 24)
+			<< setw(14) << Ex(-Ittemp, 0, 23) << setw(14) << Ex(0, 0, 23) << setw(14) << Ex(Ittemp, 0, 23)
+			<< setw(14) << Ex(-Ittemp, 0, 22) << setw(14) << Ex(0, 0, 22) << setw(14) << Ex(Ittemp, 0, 22)
+			<< setw(14) << Ex(-Ittemp, 0, 21) << setw(14) << Ex(0, 0, 21) << setw(14) << Ex(Ittemp, 0, 21)
+			<< setw(14) << Ex(-Ittemp, 0, 20) << setw(14) << Ex(0, 0, 20) << setw(14) << Ex(Ittemp, 0, 20)
+			<< endl;
 		fout_point_Ez << setw(11) << n*dt*1.0E6
-			<< setw(14) << Ez(0, 10, 0) << setw(14) << Ez(5, 5, 5) << setw(14) << Ez(0, 0, 10) << endl;
+			<< setw(14) << Ex(-Ittemp, 0, 17) << setw(14) << Ex(0, 0, 17) << setw(14) << Ex(Ittemp, 0, 17)
+			<< setw(14) << Ex(-Ittemp, 0, 16) << setw(14) << Ex(0, 0, 16) << setw(14) << Ex(Ittemp, 0, 16)
+			<< setw(14) << Ex(-Ittemp, 0, 15) << setw(14) << Ex(0, 0, 15) << setw(14) << Ex(Ittemp, 0, 15)
+			<< setw(14) << Ex(-Ittemp, 0, 10) << setw(14) << Ex(0, 0, 10) << setw(14) << Ex(Ittemp, 0, 10)
+			<< setw(14) << Ex(-Ittemp, 0, 5) << setw(14) << Ex(0, 0, 5) << setw(14) << Ex(Ittemp, 0, 5)
+			<< setw(14) << Ex(-Ittemp, 0, 0) << setw(14) << Ex(0, 0, 0) << setw(14) << Ex(Ittemp, 0, 0)
+			<< endl;
 
 	}  // loop time
 
 	   ////y面  j=0  Ex
-	for (int k = KsMin; k <= KsMax - 1-5; k++) {
+	for (int k = KsMin; k <= KsMax - 1; k++) {
 		for (int i = IsMin; i <= IsMax - 1; i++) {
-			tempx = (Emx(i, 0, k) + Emx(i, 1, k) + Emx(i, 0, k + 1) + Emx(i, 1, k + 1)) / 4.0;
-			tempy = (Emy(i, 0, k) + Emy(i + 1, 0, k) + Emy(i, 0, k + 1) + Emy(i + 1, 0, k + 1)) / 4.0;
-			tempz = (Emz(i, 0, k) + Emz(i + 1, 0, k) + Emz(i, 1, k) + Emz(i + 1, 1, k)) / 4.0;
-			//temp = sqrt(tempx*tempx + tempy*tempy + tempz*tempz);
+			tempx = Emx(i, 0, k);
+			tempy = Emy(i, 0, k);
+			tempz = Emz(i, 0, k);
 
 			fout_Yface_Ex << setw(14) << tempx;
 			fout_Yface_Ey << setw(14) << tempy;
 			fout_Yface_Ez << setw(14) << tempz;
-			//fout_Yface_Et << setw(14) << temp;
 		}
 		fout_Yface_Ex << endl;
 		fout_Yface_Ey << endl;
 		fout_Yface_Ez << endl;
-		//fout_Yface_Et << endl;
 	}
 
 	////z面 Ex
 	int knum = 10;   //z方向观测面
 	for (int j = JsMin; j <= JsMax - 1; j++) {
 		for (int i = IsMin; i <= IsMax - 1; i++) {
-			tempx = (Emx(i, j, knum) + Emx(i, j + 1, knum) + Emx(i, j, knum + 1) + Emx(i, j + 1, knum + 1)) / 4.0;
-			tempy = (Emy(i, j, knum) + Emy(i + 1, j, knum) + Emy(i, j, knum + 1) + Emy(i + 1, j, knum + 1)) / 4.0;
-			tempz = (Emz(i, j, knum) + Emz(i + 1, j, knum) + Emz(i, j + 1, knum) + Emz(i + 1, j + 1, knum)) / 4.0;
-			//temp = sqrt(tempx*tempx + tempy*tempy + tempz*tempz);
+			tempx = Emx(i, j, knum);
+			tempy = Emy(i, j, knum);
+			tempz = Emz(i, j, knum);
 
 			fout_Zface_Ex << setw(14) << tempx;
 			fout_Zface_Ey << setw(14) << tempy;
 			fout_Zface_Ez << setw(14) << tempz;
-			//fout_Zface_Et << setw(14) << temp;
 		}
 		fout_Zface_Ex << endl;
 		fout_Zface_Ey << endl;
 		fout_Zface_Ez << endl;
-		//fout_Zface_Et << endl;
 	}
 
 	////z方向i=0 j=0
@@ -210,34 +223,37 @@ void FDTD::compute()
 
 void FDTD::IsMedia()
 {
-	for (int i = Imin; i <= Imax - 1; i++) {
-		for (int j = Jmin; j <= Jmax - 1; j++) {
-			for (int k = Kmin; k <= Kmax - 1; k++) {
-				if (k + 0.5 <= 0.0) {
-					ob(i, j, k) = 1;
-				}
-				else {
-					ob(i, j, k) = 0;
-				}
-			}
-		}
-	}
-
 
 	//for (int i = Imin; i <= Imax - 1; i++) {
 	//	for (int j = Jmin; j <= Jmax - 1; j++) {
 	//		for (int k = Kmin; k <= Kmax - 1; k++) {
-	//			ob(i, j, k) = 0;
+	//			if (k + 0.5 <= 0.0) {
+	//				ob(i, j, k) = 1;
+	//			}
+	//			else {
+	//				ob(i, j, k) = 0;
+	//			}
 	//		}
 	//	}
 	//}
 
-	//for (int i = IsMin - 6; i <= IsMax + 6 - 1; i++) {
-	//	for (int j = JsMin - 6; j <= JsMax + 6 - 1; j++) {
-	//		for (int k = KsMin - 6; k <= -1; k++) {
-	//			ob(i, j, k) = 1;
-	//		}
-	//	}
-	//}
+
+	for (int i = Imin; i <= Imax - 1; i++) {
+		for (int j = Jmin; j <= Jmax - 1; j++) {
+			for (int k = Kmin; k <= Kmax - 1; k++) {
+				ob(i, j, k) = 0;
+			}
+		}
+	}
+
+	int ScaterGrid = 14;
+	for (int i = IsMin - ScaterGrid; i <= IsMax + ScaterGrid - 1; i++) {
+		for (int j = JsMin - ScaterGrid; j <= JsMax + ScaterGrid - 1; j++) {
+			for (int k = KsMin - 18; k <= -1; k++) {
+				ob(i, j, k) = 1;
+			}
+		}
+	}
+
 
 }

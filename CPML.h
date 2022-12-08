@@ -22,7 +22,7 @@ struct CPMLPrivate
 {
 	//Specify the CPML Order and Other Parameters
 	double sig_factor = 1.0; //取值范围 sig_factor=0.7 ~ 1.5
-	int m = 4;               //取值范围 m=2,3,4
+	int m = 3;               //取值范围 m=2,3,4
 	int ma = 1;
 	double sig_max = sig_factor*0.8*(m + 1) / Z0;
 	//[1]P107  alpha=0~0.05 
@@ -95,20 +95,6 @@ public:
 private:
 	void setCPMLRegion(int width_xn, int width_xp, int width_yn, int width_yp, int width_zn, int width_zp,
 		int IsMin_, int IsMax_, int JsMin_, int JsMax_, int KsMin_, int KsMax_);
-
-	void update3D_CPML_X1_psiE(const Matrix<double> &Hy, const Matrix<double> &Hz);
-	void update3D_CPML_X2_psiE(const Matrix<double> &Hy, const Matrix<double> &Hz);
-	void update3D_CPML_Y1_psiE(const Matrix<double> &Hx, const Matrix<double> &Hz);
-	void update3D_CPML_Y2_psiE(const Matrix<double> &Hx, const Matrix<double> &Hz);
-	void update3D_CPML_Z1_psiE(const Matrix<double> &Hx, const Matrix<double> &Hy);
-	void update3D_CPML_Z2_psiE(const Matrix<double> &Hx, const Matrix<double> &Hy);
-
-	void update3D_CPML_X1_psiH(const Matrix<double> &Ey, const Matrix<double> &Ez);
-	void update3D_CPML_X2_psiH(const Matrix<double> &Ey, const Matrix<double> &Ez);
-	void update3D_CPML_Y1_psiH(const Matrix<double> &Ex, const Matrix<double> &Ez);
-	void update3D_CPML_Y2_psiH(const Matrix<double> &Ex, const Matrix<double> &Ez);
-	void update3D_CPML_Z1_psiH(const Matrix<double> &Ex, const Matrix<double> &Ey);
-	void update3D_CPML_Z2_psiH(const Matrix<double> &Ex, const Matrix<double> &Ey);
 };
 
 #endif 
