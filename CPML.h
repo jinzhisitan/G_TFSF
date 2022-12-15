@@ -84,7 +84,7 @@ public:
 	
 	void update3D_CPML_psiE(const Matrix<double> &Hx, const Matrix<double> &Hy, const Matrix<double> &Hz);
 
-	void update3D_CPML_psiH(const Matrix<double> & Ex, const Matrix<double> & Ey, const Matrix<double> & Ez);
+	void update3D_CPML_psiH(const Matrix<double> &Ex, const Matrix<double> &Ey, const Matrix<double> &Ez);
 
 	void update3D_CPML_E(const Matrix<double> &CB, const Matrix<int> &ob, Matrix<double> &Ex, Matrix<double> &Ey, Matrix<double> &Ez);
 

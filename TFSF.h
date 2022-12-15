@@ -31,8 +31,15 @@ private:
 	//连接边界（总场边界）处入射场各分量
 	Matrix<double> Ein, Hin;
 	
-	std::vector<double> AttnE;
-	std::vector<double> AttnH;
+	std::vector<double> AttnE00;
+	std::vector<double> AttnH00;
+	std::vector<double> AttnE30;
+	std::vector<double> AttnH30;
+	std::vector<double> AttnE45;
+	std::vector<double> AttnH45;
+	std::vector<double> AttnE60;
+	std::vector<double> AttnH60;
+
 public:
 	TFSF();
 	TFSF(double dx_, double dy_, double dz_, double alpha_, double thi_, double phi_, double dt_,

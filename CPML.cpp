@@ -337,7 +337,7 @@ void CPML::update3D_CPML_psiE(const Matrix<double> &Hx, const Matrix<double> &Hy
 			for (j = JsMax; j <= Jmax - 1; j++) {
 				//factor2 = CB[ob(i, j, k)][ob(i, j, k - 1)][ob(i, j - 1, k)][ob(i, j - 1, k - 1)];
 
-				psi_Exy_2(i, j, k) = be_y_2(j)*psi_Exy_2(i, j, k) + ce_y_2(j) *(Hz(i, j, k) - Hz(i, (j - 1), k));
+				psi_Exy_2(i, j, k) = be_y_2(j)*psi_Exy_2(i, j, k) + ce_y_2(j) *(Hz(i, j, k) - Hz(i, j - 1, k));
 				//Ex(i, j, k) = Ex(i, j, k) + factor2 * psi_Exy_2(i, j, k);
 			}
 		}

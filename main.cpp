@@ -61,17 +61,17 @@ int main()
 	//************************************************************************************
 	int TFSFGrid = -16;
 	int ItMin = IsMin + TFSFGrid;   //connective boundary
-	int ItMax = IsMax - TFSFGrid;    //调试
+	int ItMax = IsMax +18;    //调试
 	
-	int JtMin = JsMin + TFSFGrid;
-	int JtMax = JsMax - TFSFGrid;
-	
-	int KtMin = KsMin - 16;
-	int KtMax = KsMax + 16;  //设置
+	int JtMin = JsMin -18;
+	int JtMax = JsMax +18;
+	int KtMin = KsMin - 18;
+
+	int KtMax = KsMax -5;  //设置
 	
 	double alpha = 0.0 / 180.0*pi;
-	double thi = 180.0 / 180.0*pi;
-	double phi = 0.0 / 180.0*pi;
+	double thi = 135.0 / 180.0*pi;
+	double phi = 0.0 / 180.0*pi;  //0或者180。保证入射波在XZ平面。
 	int IncStart = -500;
 	int IncEnd = 500;
 	//************************************************************************************

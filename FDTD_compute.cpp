@@ -10,9 +10,9 @@ using namespace std;
 void FDTD::compute()
 {
 	double tempx, tempy, tempz, temp;
-	Matrix<double> Emx(Imin, Imax, Jmin, Jmax, Kmin, Kmax);
-	Matrix<double> Emy(Imin, Imax, Jmin, Jmax, Kmin, Kmax);
-	Matrix<double> Emz(Imin, Imax, Jmin, Jmax, Kmin, Kmax);
+	Matrix<double> Emx(Imin, Imax - 1, Jmin, Jmax - 1, Kmin, Kmax - 1);
+	Matrix<double> Emy(Imin, Imax - 1, Jmin, Jmax - 1, Kmin, Kmax - 1);
+	Matrix<double> Emz(Imin, Imax - 1, Jmin, Jmax - 1, Kmin, Kmax - 1);
 
 	string f_point_Ex = "zz_point_Ex.dat";
 	string f_point_Ey = "zz_point_Ey.dat";
@@ -115,7 +115,7 @@ void FDTD::compute()
 		//	*exp(-pow((n*dt - 3.0*T) / T, 2)  );
 
 
-		if (n >= (tmax - 40)) {
+		if (n >= (tmax - 50)) {
 			for (int i = Imin; i <= Imax - 1; i++) {
 				for (int j = Jmin; j <= Jmax - 1; j++) {
 					for (int k = Kmin; k <= Kmax - 1; k++) {
