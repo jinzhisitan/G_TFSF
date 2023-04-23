@@ -41,9 +41,9 @@ int main()
 	dt = dx / 2.0 / c0;
 	
 	int IsMin, IsMax, JsMin, JsMax, KsMin, KsMax;  //散射场区域边界
-	IsMin = -10, IsMax = 10;
+	IsMin = -160, IsMax = -IsMin;
 	JsMin = IsMin, JsMax = IsMax;
-	KsMin =-5, KsMax = 15;
+	KsMin =-10, KsMax = 45;
 	int tmax=300; //total number of time steps
 
 	//Specify the CPML Thickness in Each Direction(Value of Zero
@@ -53,24 +53,24 @@ int main()
 	nxPML_1 = 20, nxPML_2 = nxPML_1, nyPML_1 = nxPML_1, nyPML_2 = nxPML_1, nzPML_1 = nxPML_1, nzPML_2 = nxPML_1;
 	
 	//Specify Material Relative Permittivity and Conductivity
-	vector<double> epsr { 1.0, 1.0 };
-	vector<double> sig { 0.0, 0.0 };
+	vector<double> epsr { 1.0, 10.0 };
+	vector<double> sig { 0.0, 0.001};
 
 	//************************************************************************************
 	//平面波加载
 	//************************************************************************************
-	int TFSFGrid = -16;
-	int ItMin = IsMin + TFSFGrid;   //connective boundary
-	int ItMax = IsMax +18;    //调试
-	
-	int JtMin = JsMin -18;
-	int JtMax = JsMax +18;
-	int KtMin = KsMin - 18;
+	int TFSFGrid = -17;
+	int ItMin = IsMin + TFSFGrid; //TFSFGrid;   //connective boundary
+	int ItMax = IsMax - TFSFGrid; //TFSFGrid;    //调试
+	int JtMin = JsMin + TFSFGrid;
+	int JtMax = JsMax - TFSFGrid;
 
+	int KtMin = KsMin -18;
 	int KtMax = KsMax -5;  //设置
 	
+
 	double alpha = 0.0 / 180.0*pi;
-	double thi = 135.0 / 180.0*pi;
+	double thi = 180.0 / 180.0*pi;
 	double phi = 0.0 / 180.0*pi;  //0或者180。保证入射波在XZ平面。
 	int IncStart = -500;
 	int IncEnd = 500;

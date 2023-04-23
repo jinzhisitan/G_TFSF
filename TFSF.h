@@ -39,6 +39,20 @@ private:
 	std::vector<double> AttnH45;
 	std::vector<double> AttnE60;
 	std::vector<double> AttnH60;
+	std::vector<double> AttnE90;
+	std::vector<double> AttnH90;
+
+
+	std::vector<double> phaseE00;
+	std::vector<double> phaseH00;
+	std::vector<double> phaseE30;
+	std::vector<double> phaseH30;
+	std::vector<double> phaseE45;
+	std::vector<double> phaseH45;
+	std::vector<double> phaseE60;
+	std::vector<double> phaseH60;
+	std::vector<double> phaseE90;
+	std::vector<double> phaseH90;
 
 public:
 	TFSF();
@@ -103,11 +117,47 @@ public:
 	void add_TFSF_Z1_H_CPML(const Matrix<double> &ch_z_1, Matrix<double> &psi_Hxz_1, Matrix<double> &psi_Hyz_1);
 	void add_TFSF_Z2_H_CPML(const Matrix<double> &ch_z_2, Matrix<double> &psi_Hxz_2, Matrix<double> &psi_Hyz_2);
 
+	/////////////////////////////////////////////////////////////////
+	//////////////    ½âÎö·¨
+	////////////////////////////////////////////////////////////////
+	void add_TSFS_Box_E_analysis(double nt, const Matrix<double> &CB, const Matrix<int> &ob, const Matrix<double> &den_ex,
+		const Matrix<double> &den_ey, const Matrix<double> &den_ez, Matrix<double> &Ex, Matrix<double> &Ey, Matrix<double> &Ez);
+	void add_TSFS_Box_H_analysis(double nt, const Matrix<double> &den_hx, const Matrix<double> &den_hy, const Matrix<double> &den_hz, 
+		Matrix<double> &Hx, Matrix<double> &Hy, Matrix<double> &Hz);
+
+
+	void add_TFSF_Box_E_CPML_analysis(double nt, const Matrix<double> &ce_x_1, const Matrix<double> &ce_x_2, const Matrix<double> &ce_y_1,
+		const Matrix<double> &ce_y_2, const Matrix<double> &ce_z_1, const Matrix<double> &ce_z_2,
+		Matrix<double> &psi_Exy_1, Matrix<double> &psi_Exy_2, Matrix<double> &psi_Exz_1, Matrix<double> &psi_Exz_2, Matrix<double> &psi_Eyx_1, Matrix<double> &psi_Eyx_2,
+		Matrix<double> &psi_Eyz_1, Matrix<double> &psi_Eyz_2, Matrix<double> &psi_Ezx_1, Matrix<double> &psi_Ezx_2, Matrix<double> &psi_Ezy_1, Matrix<double> &psi_Ezy_2);
+	
+	void add_TFSF_Box_H_CPML_analysis(double nt, const Matrix<double> &ch_x_1, const Matrix<double> &ch_x_2, const Matrix<double> &ch_y_1,
+		const Matrix<double> &ch_y_2, const Matrix<double> &ch_z_1, const Matrix<double> &ch_z_2,
+		Matrix<double> &psi_Hxy_1, Matrix<double> &psi_Hxy_2, Matrix<double> &psi_Hxz_1, Matrix<double> &psi_Hxz_2, Matrix<double> &psi_Hyx_1, Matrix<double> &psi_Hyx_2,
+		Matrix<double> &psi_Hyz_1, Matrix<double> &psi_Hyz_2, Matrix<double> &psi_Hzx_1, Matrix<double> &psi_Hzx_2, Matrix<double> &psi_Hzy_1, Matrix<double> &psi_Hzy_2);
+
+	void add_TFSF_X1_E_CPML_analysis(double nt, const Matrix<double> &ce_x_1, Matrix<double> &psi_Eyx_1, Matrix<double> &psi_Ezx_1);
+	void add_TFSF_X2_E_CPML_analysis(double nt, const Matrix<double> &ce_x_2, Matrix<double> &psi_Eyx_2, Matrix<double> &psi_Ezx_2);
+	void add_TFSF_Y1_E_CPML_analysis(double nt, const Matrix<double> &ce_y_1, Matrix<double> &psi_Exy_1, Matrix<double> &psi_Ezy_1);
+	void add_TFSF_Y2_E_CPML_analysis(double nt, const Matrix<double> &ce_y_2, Matrix<double> &psi_Exy_2, Matrix<double> &psi_Ezy_2);
+	void add_TFSF_Z1_E_CPML_analysis(double nt, const Matrix<double> &ce_z_1, Matrix<double> &psi_Exz_1, Matrix<double> &psi_Eyz_1);
+	void add_TFSF_Z2_E_CPML_analysis(double nt, const Matrix<double> &ce_z_2, Matrix<double> &psi_Exz_2, Matrix<double> &psi_Eyz_2);
+
+	void add_TFSF_X1_H_CPML_analysis(double nt, const Matrix<double> &ch_x_1, Matrix<double> &psi_Hyx_1, Matrix<double> &psi_Hzx_1);
+	void add_TFSF_X2_H_CPML_analysis(double nt, const Matrix<double> &ch_x_2, Matrix<double> &psi_Hyx_2, Matrix<double> &psi_Hzx_2);
+	void add_TFSF_Y1_H_CPML_analysis(double nt, const Matrix<double> &ch_y_1, Matrix<double> &psi_Hxy_1, Matrix<double> &psi_Hzy_1);
+	void add_TFSF_Y2_H_CPML_analysis(double nt, const Matrix<double> &ch_y_2, Matrix<double> &psi_Hxy_2, Matrix<double> &psi_Hzy_2);
+	void add_TFSF_Z1_H_CPML_analysis(double nt, const Matrix<double> &ch_z_1, Matrix<double> &psi_Hxz_1, Matrix<double> &psi_Hyz_1);
+	void add_TFSF_Z2_H_CPML_analysis(double nt, const Matrix<double> &ch_z_2, Matrix<double> &psi_Hxz_2, Matrix<double> &psi_Hyz_2);
+
+
+
 private:
 	double ComputeComponentFrac();
 	int source_position();
-	double source(double time);
+	double source(double time, double phase=0.0);
 	double attenuationFactor(double x, double y, double z);
+	double phaseCorrection(double x, double y, double z);
 };
 
 #endif 

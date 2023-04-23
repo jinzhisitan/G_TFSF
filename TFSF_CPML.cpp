@@ -1,5 +1,7 @@
 #include<cmath>
 #include"TFSF.h"
+#include"physical_constants.h"
+
 
 void TFSF::add_TFSF_Box_E_CPML(const Matrix<double> &ce_x_1, const Matrix<double> &ce_x_2, const Matrix<double> &ce_y_1, 
 	const Matrix<double> &ce_y_2, const Matrix<double> &ce_z_1, const Matrix<double> &ce_z_2,
@@ -816,6 +818,640 @@ void TFSF::add_TFSF_Z2_H_CPML(const Matrix<double> &ch_z_2, Matrix<double> &psi_
 
 			APML = attenuationFactor(i + 0.5, j, KtMax);
 			psi_Hyz_2(i, j, KtMax) -=  ch_z_2(KtMax)*ExCB_z2*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//解析法
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TFSF::add_TFSF_Box_E_CPML_analysis(double nt, const Matrix<double> &ce_x_1, const Matrix<double> &ce_x_2, const Matrix<double> &ce_y_1,
+	const Matrix<double> &ce_y_2, const Matrix<double> &ce_z_1, const Matrix<double> &ce_z_2,
+	Matrix<double> &psi_Exy_1, Matrix<double> &psi_Exy_2, Matrix<double> &psi_Exz_1, Matrix<double> &psi_Exz_2, Matrix<double> &psi_Eyx_1, Matrix<double> &psi_Eyx_2,
+	Matrix<double> &psi_Eyz_1, Matrix<double> &psi_Eyz_2, Matrix<double> &psi_Ezx_1, Matrix<double> &psi_Ezx_2, Matrix<double> &psi_Ezy_1, Matrix<double> &psi_Ezy_2)
+{
+	add_TFSF_X1_E_CPML_analysis(nt, ce_x_1, psi_Eyx_1, psi_Ezx_1);
+	add_TFSF_X2_E_CPML_analysis(nt, ce_x_2, psi_Eyx_2, psi_Ezx_2);
+	add_TFSF_Y1_E_CPML_analysis(nt, ce_y_1, psi_Exy_1, psi_Ezy_1);
+	add_TFSF_Y2_E_CPML_analysis(nt, ce_y_2, psi_Exy_2, psi_Ezy_2);
+	add_TFSF_Z1_E_CPML_analysis(nt, ce_z_1, psi_Exz_1, psi_Eyz_1);
+	add_TFSF_Z2_E_CPML_analysis(nt, ce_z_2, psi_Exz_2, psi_Eyz_2);
+}
+
+void TFSF::add_TFSF_Box_H_CPML_analysis(double nt, const Matrix<double> &ch_x_1, const Matrix<double> &ch_x_2, const Matrix<double> &ch_y_1,
+	const Matrix<double> &ch_y_2, const Matrix<double> &ch_z_1, const Matrix<double> &ch_z_2,
+	Matrix<double> &psi_Hxy_1, Matrix<double> &psi_Hxy_2, Matrix<double> &psi_Hxz_1, Matrix<double> &psi_Hxz_2, Matrix<double> &psi_Hyx_1, Matrix<double> &psi_Hyx_2,
+	Matrix<double> &psi_Hyz_1, Matrix<double> &psi_Hyz_2, Matrix<double> &psi_Hzx_1, Matrix<double> &psi_Hzx_2, Matrix<double> &psi_Hzy_1, Matrix<double> &psi_Hzy_2)
+{
+	add_TFSF_X1_H_CPML_analysis(nt, ch_x_1, psi_Hyx_1, psi_Hzx_1);
+	add_TFSF_X2_H_CPML_analysis(nt, ch_x_2, psi_Hyx_2, psi_Hzx_2);
+	add_TFSF_Y1_H_CPML_analysis(nt, ch_y_1, psi_Hxy_1, psi_Hzy_1);
+	add_TFSF_Y2_H_CPML_analysis(nt, ch_y_2, psi_Hxy_2, psi_Hzy_2);
+	add_TFSF_Z1_H_CPML_analysis(nt, ch_z_1, psi_Hxz_1, psi_Hyz_1);
+	add_TFSF_Z2_H_CPML_analysis(nt, ch_z_2, psi_Hxz_2, psi_Hyz_2);
+}
+
+
+//////////////////////    E
+void TFSF::add_TFSF_X1_E_CPML_analysis(double nt, const Matrix<double>&ce_x_1, Matrix<double> &psi_Eyx_1, Matrix<double> &psi_Ezx_1)
+{
+	////总场边界条件深入CPML
+	if (ItMin > IsMin && ItMin<IsMax) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int j, k;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-18)
+	double Hytemp = cos(phi)*cos(alpha) - cos(thi)*sin(phi)*sin(alpha);
+	double Hztemp = sin(thi)*sin(alpha);
+	//************************************************************************
+	//***************      x1        ***************
+	//    x1  Ey
+	double HzCB_x1;
+	for (j = JtMin; j <= JtMax - 1; j++) {
+		for (k = KtMin; k <= KtMax; k++) {
+			T1 = (ItMin - 0.5)*kx + (j + 0.5)*ky + k*kz;  //Hy
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+
+			APML = attenuationFactor(ItMin - 0.5, j + 0.5, k);
+			phase = phaseCorrection(ItMin - 0.5, j + 0.5, k);
+			HzCB_x1 = source(tt , phase) / Z0* Hztemp;
+			psi_Eyx_1(ItMin, j, k) += ce_x_1(ItMin)*HzCB_x1*APML;   //表6-3 修改mu0
+
+		}
+	}
+	//   x1  Ez
+	double HyCB_x1;
+	for (j = JtMin; j <= JtMax; j++) {
+		for (k = KtMin; k <= KtMax - 1; k++) {
+			T1 = (ItMin - 0.5)*kx + j *ky + (k + 0.5)*kz;   //Hx
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(ItMin - 0.5, j, k + 0.5);
+			phase = phaseCorrection(ItMin - 0.5, j, k + 0.5);
+			HyCB_x1 = source(tt , phase) / Z0*Hytemp;
+			psi_Ezx_1(ItMin, j, k) -= ce_x_1(ItMin) *HyCB_x1*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_X2_E_CPML_analysis(double nt, const Matrix<double>&ce_x_2, Matrix<double> &psi_Eyx_2, Matrix<double> &psi_Ezx_2)
+{
+	////总场边界条件深入CPML
+	if (ItMax < IsMax&&ItMax>IsMin) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int j, k;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-18)
+	double Hytemp = cos(phi)*cos(alpha) - cos(thi)*sin(phi)*sin(alpha);
+	double Hztemp = sin(thi)*sin(alpha);
+	//************************************************************************
+	//***************      x2        ***************
+	//    x2  Ey
+	double HzCB_x2;
+	for (j = JtMin; j <= JtMax - 1; j++) {
+		for (k = KtMin; k <= KtMax; k++) {
+			T1 = (ItMax + 0.5)*kx + (j + 0.5)*ky + k*kz;  //Hy
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(ItMax + 0.5, j + 0.5, k);
+			phase = phaseCorrection(ItMax + 0.5, j + 0.5, k);
+			HzCB_x2 = source(tt , phase) / Z0*Hztemp;
+			psi_Eyx_2(ItMax, j, k) -= ce_x_2(ItMax) *HzCB_x2*APML;   //表6-3 修改mu0
+		}
+	}
+	//   x2  Ez
+	double HyCB_x2;
+	for (j = JtMin; j <= JtMax; j++) {
+		for (k = KtMin; k <= KtMax - 1; k++) {
+			T1 = (ItMax + 0.5)*kx + j *ky + (k + 0.5)*kz;   //Hx
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(ItMax + 0.5, j, k + 0.5);
+			phase = phaseCorrection(ItMax + 0.5, j, k + 0.5);
+			HyCB_x2 = source(tt , phase) / Z0*Hytemp;
+			psi_Ezx_2(ItMax, j, k) += ce_x_2(ItMax)  *HyCB_x2*APML;   //表6-3 修改mu0
+		}
+	}
+
+}
+
+void TFSF::add_TFSF_Y1_E_CPML_analysis(double nt, const Matrix<double>&ce_y_1, Matrix<double> &psi_Exy_1, Matrix<double> &psi_Ezy_1)
+{
+	////总场边界条件深入CPML
+	if (JtMin > JsMin&&JtMin<JsMax) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int i, k;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-18)
+	double Hxtemp = -sin(phi)*cos(alpha) - cos(thi)*cos(phi)*sin(alpha);
+	double Hztemp = sin(thi)*sin(alpha);
+	//************************************************************************
+	//***************      y1        ***************
+	//    y1  Ez
+	double HxCB_y1;
+	for (i = ItMin; i <= ItMax; i++) {
+		for (k = KtMin; k <= KtMax - 1; k++) {
+			T1 = i*kx + (JtMin - 0.5)*ky + (k + 0.5)*kz;  //Hx
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i, JtMin - 0.5, k + 0.5);
+			phase = phaseCorrection(i, JtMin - 0.5, k + 0.5);
+			HxCB_y1 = source(tt , phase) / Z0*  Hxtemp;
+			psi_Ezy_1(i, JtMin, k) += ce_y_1(JtMin)*HxCB_y1*APML;   //表6-3 修改mu0
+		}
+	}
+	//    y1  Ex
+	double HzCB_y1;
+	for (i = ItMin; i <= ItMax - 1; i++) {
+		for (k = KtMin; k <= KtMax; k++) {
+			T1 = (i + 0.5)*kx + (JtMin - 0.5)*ky + k *kz;  //Hz
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i + 0.5, JtMin - 0.5, k);
+			phase = phaseCorrection(i + 0.5, JtMin - 0.5, k);
+			HzCB_y1= source(tt , phase) / Z0*Hztemp;
+			psi_Exy_1(i, JtMin, k) -= ce_y_1(JtMin) *HzCB_y1*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_Y2_E_CPML_analysis(double nt, const Matrix<double>&ce_y_2, Matrix<double> &psi_Exy_2, Matrix<double> &psi_Ezy_2)
+{
+	////总场边界条件深入CPML
+	if (JtMax < JsMax&&JtMax>JsMin) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int i, k;
+	double T1, tt;
+
+	double kx = dx*sin(thi)*cos(phi);
+	double ky = dy*sin(thi)*sin(phi);
+	double kz = dz*cos(thi);
+	//[1] Eq(6-7-18)
+	double Hxtemp = -sin(phi)*cos(alpha) - cos(thi)*cos(phi)*sin(alpha);
+	double Hztemp = sin(thi)*sin(alpha);
+	//************************************************************************
+	//***************      y2        ***************
+	//    y2  Ez
+	double HxCB_y2;
+	for (i = ItMin; i <= ItMax; i++) {
+		for (k = KtMin; k <= KtMax - 1; k++) {
+			T1 = i*kx + (JtMax + 0.5)*ky + (k + 0.5)*kz;  //Hx
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i, JtMax + 0.5, k + 0.5);
+			phase = phaseCorrection(i, JtMax + 0.5, k + 0.5);
+			HxCB_y2 = source(tt , phase) / Z0*Hxtemp;
+			psi_Ezy_2(i, JtMax, k) -= ce_y_2(JtMax)*HxCB_y2*APML;   //表6-3 修改mu0
+		}
+	}
+	//    y2  Ex
+	double HzCB_y2;
+	for (i = ItMin; i <= ItMax - 1; i++) {
+		for (k = KtMin; k <= KtMax; k++) {
+			T1 = (i + 0.5)*kx + (JtMax + 0.5)*ky + k *kz;  //Hz
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i + 0.5, JtMax + 0.5, k);
+			phase = phaseCorrection(i + 0.5, JtMax + 0.5, k);
+			HzCB_y2 = source(tt , phase) / Z0*Hztemp;
+			psi_Exy_2(i, JtMax, k) += ce_y_2(JtMax)  *HzCB_y2*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_Z1_E_CPML_analysis(double nt, const Matrix<double>&ce_z_1, Matrix<double> &psi_Exz_1, Matrix<double> &psi_Eyz_1)
+{
+	////总场边界条件深入CPML
+	if (KtMin > KsMin&&KtMin<KsMax) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int i, j;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-18)
+	double Hxtemp = -sin(phi)*cos(alpha) - cos(thi)*cos(phi)*sin(alpha);
+	double Hytemp = cos(phi)*cos(alpha) - cos(thi)*sin(phi)*sin(alpha);
+	//************************************************************************
+	//***************      z1        ***************
+	//    z1  Ex
+	double HyCB_z1;
+	for (i = ItMin; i <= ItMax - 1; i++) {
+		for (j = JtMin; j <= JtMax; j++) {
+			T1 = (i + 0.5)*kx + j*ky + (KtMin - 0.5)*kz;  //Hy
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i + 0.5, j, KtMin - 0.5);
+			phase = phaseCorrection(i + 0.5, j, KtMin - 0.5);
+			HyCB_z1 = source(tt , phase) / Z0* Hytemp;
+			psi_Exz_1(i, j, KtMin) += ce_z_1(KtMin)*HyCB_z1*APML;   //表6-3 修改mu0
+		}
+	}
+	//   z1  Ey
+	double HxCB_z1;
+	for (i = ItMin; i <= ItMax; i++) {
+		for (j = JtMin; j <= JtMax - 1; j++) {
+			T1 = i*kx + (j + 0.5)*ky + (KtMin - 0.5)*kz;   //Hx
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i, j + 0.5, KtMin - 0.5);
+			phase = phaseCorrection(i, j + 0.5, KtMin - 0.5);
+			HxCB_z1 = source(tt , phase) / Z0* Hxtemp;
+			psi_Eyz_1(i, j, KtMin) -= ce_z_1(KtMin) *HxCB_z1*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_Z2_E_CPML_analysis(double nt, const Matrix<double>&ce_z_2, Matrix<double> &psi_Exz_2, Matrix<double> &psi_Eyz_2)
+{
+	////总场边界条件深入CPML
+	if (KtMax < KsMax && KtMax>KsMin) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int i, j;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-18)
+	double Hxtemp = -sin(phi)*cos(alpha) - cos(thi)*cos(phi)*sin(alpha);
+	double Hytemp = cos(phi)*cos(alpha) - cos(thi)*sin(phi)*sin(alpha);
+	//************************************************************************
+	//***************      z2        ***************
+	//    z2  Ex
+	double HyCB_z2;
+	for (i = ItMin; i <= ItMax - 1; i++) {
+		for (j = JtMin; j <= JtMax; j++) {
+			T1 = (i + 0.5)*kx + j*ky + (KtMax + 0.5)*kz;  //Hy
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i + 0.5, j, KtMax + 0.5);
+			phase = phaseCorrection(i + 0.5, j, KtMax + 0.5);
+			HyCB_z2 = source(tt , phase) / Z0* Hytemp;
+			psi_Exz_2(i, j, KtMax) -= ce_z_2(KtMax)*HyCB_z2*APML;   //表6-3 修改mu0
+		}
+	}
+	//   z2  Ey
+	double HxCB_z2;
+	for (i = ItMin; i <= ItMax; i++) {
+		for (j = JtMin; j <= JtMax - 1; j++) {
+			T1 = i*kx + (j + 0.5)*ky + (KtMax + 0.5)*kz;   //Hx
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i, j + 0.5, KtMax + 0.5);
+			phase = phaseCorrection(i, j + 0.5, KtMax + 0.5);
+			HxCB_z2 = source(tt , phase) / Z0*Hxtemp;
+			psi_Eyz_2(i, j, KtMax) += ce_z_2(KtMax) *HxCB_z2*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////    H
+void TFSF::add_TFSF_X1_H_CPML_analysis(double nt, const Matrix<double> &ch_x_1, Matrix<double> &psi_Hyx_1, Matrix<double> &psi_Hzx_1)
+{
+	////总场边界条件深入CPML
+	if (ItMin > IsMin && ItMin <IsMax) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int j, k;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-17)
+	double Eytemp = cos(phi)*sin(alpha) + cos(thi)*sin(phi)*cos(alpha);
+	double Eztemp = -sin(thi)*cos(alpha);
+
+	//****************************************************************************************
+	//***************       x1      ***************
+	//x1 Hy
+	double EzCB_x1;
+	for (j = JtMin; j <= JtMax; j++) {
+		for (k = KtMin; k <= KtMax - 1; k++) {
+			T1 = ItMin*kx + j*ky + (k + 0.5)*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(ItMin, j, k + 0.5);
+			phase = phaseCorrection(ItMin, j, k + 0.5);
+			EzCB_x1 = source(tt , phase)*Eztemp;
+			psi_Hyx_1(ItMin - 1, j, k) -= ch_x_1(ItMin - 1)*EzCB_x1*APML;   //表6-3 修改mu0
+		}
+	}
+	//x1 Hz
+	double EyCB_x1;
+	for (j = JtMin; j <= JtMax - 1; j++) {
+		for (k = KtMin; k <= KtMax; k++) {
+			T1 = ItMin*kx + (j + 0.5)*ky + k *kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(ItMin, j + 0.5, k);
+			phase = phaseCorrection(ItMin, j + 0.5, k);
+			EyCB_x1 = source(tt , phase)*Eytemp;
+			psi_Hzx_1(ItMin - 1, j, k) += ch_x_1(ItMin - 1) *EyCB_x1*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_X2_H_CPML_analysis(double nt, const Matrix<double> &ch_x_2, Matrix<double> &psi_Hyx_2, Matrix<double> &psi_Hzx_2)
+{
+	////总场边界条件深入CPML
+	if (ItMax < IsMax && ItMax > IsMin) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int j, k;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-17)
+	double Eytemp = cos(phi)*sin(alpha) + cos(thi)*sin(phi)*cos(alpha);
+	double Eztemp = -sin(thi)*cos(alpha);
+
+	//****************************************************************************************
+	//***************       x2      ***************
+	//x2 Hy
+	double EzCB_x2;
+	for (j = JtMin; j <= JtMax; j++) {
+		for (k = KtMin; k <= KtMax - 1; k++) {
+			T1 = ItMax*kx + j*ky + (k + 0.5)*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(ItMax, j, k + 0.5);
+			phase = phaseCorrection(ItMax, j, k + 0.5);
+			EzCB_x2 = source(tt , phase)*Eztemp;
+			psi_Hyx_2(ItMax, j, k) += ch_x_2(ItMax)*EzCB_x2*APML;   //表6-3 修改mu0
+		}
+	}
+
+	//x2 Hz
+	double EyCB_x2;
+	for (j = JtMin; j <= JtMax - 1; j++) {
+		for (k = KtMin; k <= KtMax; k++) {
+			T1 = ItMax*kx + (j + 0.5)*ky + k *kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(ItMax, j + 0.5, k);
+			phase = phaseCorrection(ItMax, j + 0.5, k);
+			EyCB_x2 = source(tt , phase)*Eytemp;
+			psi_Hzx_2(ItMax, j, k) -= ch_x_2(ItMax) *EyCB_x2*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_Y1_H_CPML_analysis(double nt, const Matrix<double> &ch_y_1, Matrix<double> &psi_Hxy_1, Matrix<double> &psi_Hzy_1)
+{
+	////总场边界条件深入CPML
+	if (JtMin > JsMin&&JtMin<JsMax) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int i, k;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-17)
+	double Extemp = -sin(phi)*sin(alpha) + cos(thi)*cos(phi)*cos(alpha);
+	double Eztemp = -sin(thi)*cos(alpha);
+	//****************************************************************************************
+	//***************       y1      ***************
+	// y1 Hz
+	double ExCB_y1;
+	for (i = ItMin; i <= ItMax - 1; i++) {
+		for (k = KtMin; k <= KtMax; k++) {
+			T1 = (i + 0.5)*kx + JtMin*ky + k*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i + 0.5, JtMin, k);
+			phase = phaseCorrection(i + 0.5, JtMin, k);
+			ExCB_y1 = source(tt , phase)*Extemp;
+			psi_Hzy_1(i, JtMin - 1, k) -= ch_y_1(JtMin - 1)*ExCB_y1*APML;   //表6-3 修改mu0
+		}
+	}
+	// y1  Hx
+	double EzCB_y1;
+	for (i = ItMin; i <= ItMax; i++) {
+		for (k = KtMin; k <= KtMax - 1; k++) {
+			T1 = i*kx + JtMin*ky + (k + 0.5)*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i, JtMin, k + 0.5);
+			phase = phaseCorrection(i, JtMin, k + 0.5);
+			EzCB_y1 = source(tt , phase)*Eztemp;
+			psi_Hxy_1(i, JtMin - 1, k) += ch_y_1(JtMin - 1) *EzCB_y1*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_Y2_H_CPML_analysis(double nt, const Matrix<double> &ch_y_2, Matrix<double> &psi_Hxy_2, Matrix<double> &psi_Hzy_2)
+{
+	////总场边界条件深入CPML
+	if (JtMax < JsMax && JtMax>JsMin) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int i, k;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-17)
+	double Extemp = -sin(phi)*sin(alpha) + cos(thi)*cos(phi)*cos(alpha);
+	double Eztemp = -sin(thi)*cos(alpha);
+	//****************************************************************************************
+	//***************       y2      ***************
+	// y2  Hz
+	double ExCB_y2;
+	for (i = ItMin; i <= ItMax - 1; i++) {
+		for (k = KtMin; k <= KtMax; k++) {
+			T1 = (i + 0.5)*kx + JtMax*ky + k*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i + 0.5, JtMax, k);
+			phase = phaseCorrection(i + 0.5, JtMax, k);
+			ExCB_y2 = source(tt , phase)*Extemp;
+			psi_Hzy_2(i, JtMax, k) += ch_y_2(JtMax)*ExCB_y2*APML;   //表6-3 修改mu0
+		}
+	}
+	// y2  Hx
+	double EzCB_y2;
+	for (i = ItMin; i <= ItMax; i++) {
+		for (k = KtMin; k <= KtMax - 1; k++) {
+			T1 = i*kx + JtMax*ky + (k + 0.5)*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i, JtMax, k + 0.5);
+			phase = phaseCorrection(i, JtMax, k + 0.5);
+			EzCB_y2 = source(tt , phase)*Eztemp;
+			psi_Hxy_2(i, JtMax, k) -= ch_y_2(JtMax) *EzCB_y2*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_Z1_H_CPML_analysis(double nt, const Matrix<double> &ch_z_1, Matrix<double> &psi_Hxz_1, Matrix<double> &psi_Hyz_1)
+{
+	////总场边界条件深入CPML
+	if (KtMin > KsMin && KtMin<KsMax) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int i, j;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-17)
+	double Extemp = -sin(phi)*sin(alpha) + cos(thi)*cos(phi)*cos(alpha);
+	double Eytemp = cos(phi)*sin(alpha) + cos(thi)*sin(phi)*cos(alpha);
+	//****************************************************************************************
+	//***************       z1      ***************
+	//z1  Hx
+	double EyCB_z1;
+	for (i = ItMin; i <= ItMax; i++) {
+		for (j = JtMin; j <= JtMax - 1; j++) {
+			T1 = i*kx + (j + 0.5)*ky + KtMin*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i, j + 0.5, KtMin);
+			phase = phaseCorrection(i, j + 0.5, KtMin);
+			EyCB_z1 = source(tt , phase)*Eytemp;
+			psi_Hxz_1(i, j, KtMin - 1) -= ch_z_1(KtMin - 1)*EyCB_z1*APML;   //表6-3 修改mu0
+		}
+	}
+
+	//z1  Hy
+	double ExCB_z1;
+	for (i = ItMin; i <= ItMax - 1; i++) {
+		for (j = JtMin; j <= JtMax; j++) {
+			T1 = (i + 0.5)*kx + j*ky + KtMin*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i + 0.5, j, KtMin);
+			phase = phaseCorrection(i + 0.5, j, KtMin);
+			ExCB_z1 = source(tt , phase)*Extemp;
+			psi_Hyz_1(i, j, KtMin - 1) += ch_z_1(KtMin - 1) *ExCB_z1*APML;   //表6-3 修改mu0
+		}
+	}
+}
+
+void TFSF::add_TFSF_Z2_H_CPML_analysis(double nt, const Matrix<double> &ch_z_2, Matrix<double> &psi_Hxz_2, Matrix<double> &psi_Hyz_2)
+{
+	////总场边界条件深入CPML
+	if (KtMax < KsMax && KtMax>KsMin) {
+		return;
+	}
+
+	double APML = 1.0;
+	double phase = 0.0;
+
+	int i, j;
+	double T1, tt;
+
+	double kx = dx *sin(thi)*cos(phi);
+	double ky = dy *sin(thi)*sin(phi);
+	double kz = dz *cos(thi);
+	//[1] Eq(6-7-17)
+	double Extemp = -sin(phi)*sin(alpha) + cos(thi)*cos(phi)*cos(alpha);
+	double Eytemp = cos(phi)*sin(alpha) + cos(thi)*sin(phi)*cos(alpha);
+
+	//****************************************************************************************
+	//***************       z2     ***************
+	//z2  Hx
+	double EyCB_z2;
+	for (i = ItMin; i <= ItMax; i++) {
+		for (j = JtMin; j <= JtMax - 1; j++) {
+			T1 = i*kx + (j + 0.5)*ky + KtMax*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i, j + 0.5, KtMax);
+			phase = phaseCorrection(i, j + 0.5, KtMax);
+			EyCB_z2 = source(tt , phase)*Eytemp;
+			psi_Hxz_2(i, j, KtMax) += ch_z_2(KtMax)*EyCB_z2*APML;   //表6-3 修改mu0
+		}
+	}
+
+	//z2  Hy
+	double ExCB_z2;
+	for (i = ItMin; i <= ItMax - 1; i++) {
+		for (j = JtMin; j <= JtMax; j++) {
+			T1 = (i + 0.5)*kx + j*ky + KtMax*kz;
+			T1 -= Isource*delta;
+			tt = nt*dt - T1 / c0;
+			APML = attenuationFactor(i + 0.5, j, KtMax);
+			phase = phaseCorrection(i + 0.5, j, KtMax);
+			ExCB_z2 = source(tt , phase)*Extemp;
+			psi_Hyz_2(i, j, KtMax) -= ch_z_2(KtMax)*ExCB_z2*APML;   //表6-3 修改mu0
 		}
 	}
 }

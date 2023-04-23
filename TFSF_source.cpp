@@ -16,10 +16,13 @@ void TFSF::addSource(int nt)
 
 	fout << scientific;
 	fout.precision(4);
-	fout << setw(4) << nt << setw(14) << Ein(Isource) << setw(14) << Ein(0) << endl;
+
+	fout << setw(4) << nt*dt*1.0E6 << setw(14) << Ein(Isource) << setw(14) << Ein(-10) 
+		<< setw(14) <<source(nt*dt-32.0/40.0/ c0)
+		<< endl;
 }
 
-double TFSF::source(double time)
+double TFSF::source(double time, double phase)
 {
 	////高空电磁脉冲源  IEC
 	//int option = 3;
@@ -48,20 +51,29 @@ double TFSF::source(double time)
 	//}
 	//return fsource;
 
+
 	double omega = 2.0 * pi*300.E6;
-	double fsource;
-	if (time >= 0) {
-		fsource = sin(omega *time);
+	//升余弦函数
+	double Ut = 1.0;
+	double Tperiod = 2.0 * pi / omega;
+	double t0 = Tperiod / 2.0;   //可以修改调整。
+	if (time >= t0){
+		Ut = 1.0;
+	}
+	else if (time >= 0.0){
+		Ut = 0.5*(1.0 - cos(pi*time / t0)) ;
 	}
 	else {
-		fsource = 0.0;
+		Ut = 0.0;
 	}
+	double fsource;
+	fsource = Ut*sin(omega *time+phase);
 	return fsource;
 
 
 	//double f = 300.E6;
-	//double tau = 2.0 / 100.0E6;
-	//double t0 = 0.6*tau;
+	//double tau = 2.0 / 150.0E6;
+	//double t0 = 0.8*tau;
 	//double fsource;
 	//if (time >= 0) {
 	//	fsource = sin(2.0 * pi *f* time)  *  exp(-4.0 *pi * (time - t0)* (time - t0) / tau/tau);
