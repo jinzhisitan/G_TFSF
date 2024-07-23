@@ -64,7 +64,7 @@ double TFSF::ComputeComponentFrac()
 	
 	//ref[2], P217, Eq(5.69)
 	double m_VFrac = sqrt(pow(st, 4)*(pow(cp, 4) + pow(sp, 4)) + pow(ct, 4));
-	
+
 	//std::cout << "m_VFrac= " << m_VFrac << std::endl;
 	return m_VFrac;
 }

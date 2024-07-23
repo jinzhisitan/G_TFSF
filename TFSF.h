@@ -42,6 +42,12 @@ private:
 	std::vector<double> AttnE90;
 	std::vector<double> AttnH90;
 
+	std::vector<double> AttnEx;
+	std::vector<double> AttnHx;
+	std::vector<double> AttnEy;
+	std::vector<double> AttnHy;
+	std::vector<double> AttnEz;
+	std::vector<double> AttnHz;
 
 	std::vector<double> phaseE00;
 	std::vector<double> phaseH00;
@@ -54,6 +60,16 @@ private:
 	std::vector<double> phaseE90;
 	std::vector<double> phaseH90;
 
+	std::vector<double> phaseEx;
+	std::vector<double> phaseHx;
+	std::vector<double> phaseEy;
+	std::vector<double> phaseHy;
+	std::vector<double> phaseEz;
+	std::vector<double> phaseHz;
+	
+	////bAnalysis=true解析计算，bAnalysis=false数值计算。
+	////应该选择bAnalysis=false数值计算。
+	bool bAnalysis;
 public:
 	TFSF();
 	TFSF(double dx_, double dy_, double dz_, double alpha_, double thi_, double phi_, double dt_,
@@ -158,6 +174,8 @@ private:
 	double source(double time, double phase=0.0);
 	double attenuationFactor(double x, double y, double z);
 	double phaseCorrection(double x, double y, double z);
+	void CalAttnEH();
+	void CalPhaseEH();
 };
 
 #endif 

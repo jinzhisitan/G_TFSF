@@ -24,7 +24,7 @@ void TFSF::addSource(int nt)
 
 double TFSF::source(double time, double phase)
 {
-	////高空电磁脉冲源  IEC
+	//// 高空电磁脉冲源  IEC
 	//int option = 3;
 	//double E0k, alpha, beta, fsource;
 	//// Publication in 1976
